@@ -64,6 +64,22 @@ int elf64_parse_segment(Elf64_Phdr *header, const char *data, size_t offset)
     return (0);
 }
 
+int elf64_parse_section(Elf64_Shdr *header, const char *data, size_t offset)
+{
+    
+    header->sh_name = *(Elf64_Word *)(data + offset + 0x00);
+    header->sh_type = *(Elf64_Word *)(data + offset + 0x04);
+    header->sh_flags = *(Elf64_Xword *)(data + offset + 0x08);
+    header->sh_addr = *(Elf64_Addr *)(data + offset + 0x10);
+    header->sh_offset = *(Elf64_Off *)(data + offset + 0x18);
+    header->sh_size = *(Elf64_Xword *)(data + offset + 0x20);
+    header->sh_link = *(Elf64_Word *)(data + offset + 0x28);
+    header->sh_info = *(Elf64_Word *)(data + offset + 0x2c);
+    header->sh_addralign = *(Elf64_Xword *)(data + offset + 0x30);
+    header->sh_entsize = *(Elf64_Xword *)(data + offset + 0x38);
+    return (0);
+}
+
 int elf64_parse(const char *path, elf64_t *elf)
 {
     int         fd;
@@ -89,6 +105,12 @@ int elf64_parse(const char *path, elf64_t *elf)
         if (elf->size < elf->header.e_phoff + elf->header.e_phentsize * (i + 1))
             return (-1);
         elf64_parse_segment(&elf->segments[i], elf->data, elf->header.e_phoff + elf->header.e_phentsize * i);
+    }
+    for (size_t i = 0; i < elf->header.e_shnum; i++)
+    {   
+        if (elf->size < elf->header.e_shoff + elf->header.e_shentsize * (i + 1))
+            return (-1);
+        elf64_parse_section(&elf->sections[i], elf->data, elf->header.e_shoff + elf->header.e_shentsize * i);
     }
     return (0);
 }
