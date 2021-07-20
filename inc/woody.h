@@ -5,9 +5,9 @@
 
 typedef struct
 {
-    Elf64_Ehdr  file_header;
-    Elf64_Phdr  *segments_headers;
-    Elf64_Shdr  *sections_headers;
+    Elf64_Ehdr  header;
+    Elf64_Phdr  *segments;
+    Elf64_Shdr  *sections;
     char        *data;
     size_t      size;
 }   elf64_t;

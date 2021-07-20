@@ -26,7 +26,7 @@ int ft_error(const char *errmsg)
     return (1);
 }
 
-int elf64_parse_file_header(Elf64_Ehdr *header, const char *data, size_t size)
+int elf64_parse_header(Elf64_Ehdr *header, const char *data, size_t size)
 {
     char expected_ident[] = {0x7f, 'E', 'L', 'F', 2};
 
@@ -51,7 +51,7 @@ int elf64_parse_file_header(Elf64_Ehdr *header, const char *data, size_t size)
     return (0); 
 }
 
-int elf64_parse_program_header(Elf64_Phdr *header, const char *data, size_t offset)
+int elf64_parse_segment(Elf64_Phdr *header, const char *data, size_t offset)
 {
     header->p_type = *(Elf64_Word *)(data + offset + 0x0);
     header->p_flags = *(Elf64_Word *)(data + offset + 0x04);
@@ -74,12 +74,23 @@ int elf64_parse(const char *path, elf64_t *elf)
 		return (-1);
     elf->size = s.st_size;
     elf->data = malloc(sizeof(char) * elf->size);
-    if (!elf->data)
+    if (elf->data == NULL)
         return (-1);
     if (read(fd, elf->data, elf->size) < 0)
 		return (-1);
     close(fd);
-    return elf64_parse_file_header(&elf->file_header, elf->data, elf->size);
+    if (elf64_parse_header(&elf->header, elf->data, elf->size) < 0)
+        return (-1);
+    elf->segments = malloc(sizeof(Elf64_Phdr) * elf->header.e_phnum);
+    if (elf->segments == NULL)
+        return (-1);
+    for (size_t i = 0; i < elf->header.e_phnum; i++)
+    {   
+        if (elf->size < elf->header.e_phoff + elf->header.e_phentsize * (i + 1))
+            return (-1);
+        elf64_parse_segment(&elf->segments[i], elf->data, elf->header.e_phoff + elf->header.e_phentsize * i);
+    }
+    return (0);
 }
 
 int xor_encrypt(char *bin, size_t offset, size_t len, const int key)
@@ -93,7 +104,7 @@ int xor_encrypt(char *bin, size_t offset, size_t len, const int key)
 
 void elf64_print(elf64_t *elf)
 {
-    printf("e_ident: %s\n", elf->file_header.e_ident);
+    printf("e_ident: %s\n", elf->header.e_ident);
 }
 
 int main(int ac, char **av)
