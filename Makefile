@@ -6,7 +6,7 @@
 #    By: lfalkau <lfalkau@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2021/07/17 02:40:03 by lfalkau           #+#    #+#              #
-#    Updated: 2021/07/17 03:37:44 by lfalkau          ###   ########.fr        #
+#    Updated: 2021/07/20 18:20:25 by bccyv            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -19,7 +19,7 @@ SRCDIR	=	src
 INCDIR	=	inc
 OBJDIR	=	obj
 
-SRCS	=	main.c
+SRCS	=	main.c elf64.parse.c elf64.debug.c
 
 CC		=	gcc
 CFLAGS	=	-Wall -Wextra -Werror
