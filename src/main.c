@@ -37,7 +37,7 @@ int	main(int ac, char **av)
 	if (elf64_parse(path, &elf) < 0)
 		return ft_error("woody: Failed to parse av[1]. Make sure it does existes and is a valid elf64 file.\n");
 
-	elf64_print(&elf, 0b111);
+	// elf64_print(&elf, 0b111);
 	elf64_cleanup(&elf);
 
 	return (0);

@@ -1,0 +1,65 @@
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
+
+#define ROTL(a,b)                       \
+(                                       \
+    ((a) << (b)) | ((a) >> (32 - (b)))  \
+)
+
+#define QR(a, b, c, d)      \
+(		                    \
+	b ^= ROTL(a + d, 7),	\
+	c ^= ROTL(b + a, 9),	\
+	d ^= ROTL(c + b,13),	\
+	a ^= ROTL(d + c,18)     \
+)
+
+static void chacha_block(uint32_t matrix[16], uint32_t cypher[16])
+{
+    for (int i = 0; i < 16; i++)
+        cypher[i] = matrix[i];
+
+    for (int i = 0; i < 5; i++)
+    {
+		QR(cypher[ 0], cypher[ 4], cypher[ 8], cypher[12]);
+		QR(cypher[ 5], cypher[ 9], cypher[13], cypher[ 1]);
+		QR(cypher[10], cypher[14], cypher[ 2], cypher[ 6]);
+		QR(cypher[15], cypher[ 3], cypher[ 7], cypher[11]); 
+
+		QR(cypher[ 0], cypher[ 1], cypher[ 2], cypher[ 3]);
+		QR(cypher[ 5], cypher[ 6], cypher[ 7], cypher[ 4]);
+		QR(cypher[10], cypher[11], cypher[ 8], cypher[ 9]);
+		QR(cypher[15], cypher[12], cypher[13], cypher[14]);
+    }
+
+    for (int i = 0; i < 16; i++)
+        cypher[i] += matrix[i];
+}
+
+void chacha20_encrypt(char *plaintext, size_t offset, size_t size, uint32_t key[8])
+{
+    uint32_t    cypher[16];
+    uint32_t    matrix[16] =
+    {
+        0x61707865, 0x3320646e, 0x79622d32, 0x6b206574,
+        key[0], key[1], key[2], key[3],
+        key[4], key[5], key[6], key[7],
+        0x0000, 0x0000, 0x0042, 0x0042
+    };
+    
+    for (size_t i = 0; i < size; i++)
+    {
+        if (i % 64 == 0)
+        {
+            *(uint64_t *)(matrix + 12) += 1;
+            chacha_block(matrix, cypher);
+        }
+        plaintext[offset + i] ^= ((unsigned char *)cypher)[i % 64];
+    }
+}
+
+void chacha20_decrypt(char *encrypted, size_t offset, size_t size, uint32_t key[8])
+{
+    chacha20_encrypt(encrypted, offset, size, key);
+}

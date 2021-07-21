@@ -19,7 +19,7 @@ SRCDIR	=	src
 INCDIR	=	inc
 OBJDIR	=	obj
 
-SRCS	=	main.c elf64.parse.c elf64.debug.c
+SRCS	=	main.c elf64.parse.c chacha20.c
 
 CC		=	gcc
 CFLAGS	=	-Wall -Wextra -Werror

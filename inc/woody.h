@@ -17,4 +17,7 @@ void	elf64_cleanup(elf64_t *elf);
 int		elf64_parse(const char *path, elf64_t *elf);
 void	elf64_print(elf64_t *elf, int flags);
 
+void    chacha20_encrypt(char *txt, size_t offset, size_t size, uint32_t key[16]);
+void    chacha20_decrypt(char *txt, size_t offset, size_t size, uint32_t key[16]);
+
 #endif
