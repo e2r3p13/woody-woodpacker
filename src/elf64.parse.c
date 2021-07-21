@@ -6,7 +6,7 @@
 /*   By: bccyv <bccyv@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/20 17:29:21 by bccyv             #+#    #+#             */
-/*   Updated: 2021/07/20 19:00:22 by bccyv            ###   ########.fr       */
+/*   Updated: 2021/07/21 17:47:24 by bccyv            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,16 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+char	*elf64_get_section_name(elf64_t *elf, Elf64_Shdr *section)
+{
+	Elf64_Shdr	*secnames;
+	size_t		pos;
+
+	secnames = &(elf->sections[elf->header.e_shstrndx]);
+	pos = secnames->sh_offset + section->sh_name;
+	return (elf->data + pos);
+}
+
 void	elf64_cleanup(elf64_t *elf)
 {
 	if (elf != NULL)
@@ -28,7 +38,6 @@ void	elf64_cleanup(elf64_t *elf)
 			free(elf->segments);
 		if (elf->sections != NULL)
 			free(elf->sections);
-		free(elf);
 	}
 }
 

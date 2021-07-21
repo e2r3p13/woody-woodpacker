@@ -6,7 +6,7 @@
 /*   By: bccyv <bccyv@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/20 18:17:17 by bccyv             #+#    #+#             */
-/*   Updated: 2021/07/20 19:01:35 by bccyv            ###   ########.fr       */
+/*   Updated: 2021/07/21 17:21:08 by bccyv            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,7 +55,7 @@ void	elf64_print(elf64_t *elf, int flags)
 		printf("ELF sections:\n");
 		for (size_t i = 0; i < elf->header.e_shnum; i++)
 		{
-			printf("\tsection:\n");
+			printf("\t%s\n", elf64_get_section_name(elf, &elf->sections[i]));
 			printf("\t\tsh_name: %d\n", elf->sections[i].sh_name);
 			printf("\t\tsh_type: 0x%x\n", elf->sections[i].sh_type);
 			printf("\t\tsh_flags: 0x%llx\n", elf->sections[i].sh_flags);

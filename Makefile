@@ -6,23 +6,23 @@
 #    By: lfalkau <lfalkau@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2021/07/17 02:40:03 by lfalkau           #+#    #+#              #
-#    Updated: 2021/07/20 18:20:25 by bccyv            ###   ########.fr        #
+#    Updated: 2021/07/21 19:24:01 by bccyv            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 # ****************
 #	Variables:
 
-NAME	=	woody
+NAME	=	woody_woodpacker
 
 SRCDIR	=	src
 INCDIR	=	inc
 OBJDIR	=	obj
 
-SRCS	=	main.c elf64.parse.c chacha20.c
+SRCS	=	main.c elf64.parse.c chacha20.c # elf64.debug.c
 
 CC		=	gcc
-CFLAGS	=	-Wall -Wextra -Werror
+CFLAGS	=	-Wall -Wextra -Werror # -g3 -fsanitize=address
 
 OBJS	=	$(addprefix $(OBJDIR)/,$(SRCS:.c=.o))
 DPDCS	=	$(OBJS:.o=.d)
