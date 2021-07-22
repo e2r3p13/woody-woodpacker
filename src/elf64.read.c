@@ -1,6 +1,8 @@
 #include <elf.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <string.h>
+#include <fcntl.h>
 #include <woody.h>
 
 void elf64_free(Elf64 *elf)
@@ -39,7 +41,7 @@ static int read_header(Elf64 *elf, char *fdata)
 static int read_pheaders(Elf64 *elf, char *fdata)
 {
     size_t phsize = sizeof(Elf64_Phdr) * elf->header.e_phnum;
-    
+
     elf->pheaders = malloc(phsize);
     if (elf->pheaders == NULL)
         return (-1);
@@ -52,7 +54,7 @@ static int read_pheaders(Elf64 *elf, char *fdata)
 static int read_sheaders(Elf64 *elf, char *fdata)
 {
     size_t shsize = sizeof(Elf64_Shdr) * elf->header.e_shnum;
-    
+
     elf->sheaders = malloc(shsize);
     if (elf->pheaders == NULL)
         return (-1);
@@ -81,16 +83,53 @@ static int read_scontent(Elf64 *elf, char *fdata)
     return (0);
 }
 
-Elf64   *elf64_read(char *fdata, size_t fsize)
+static char *read_file(const char *path, size_t *fsize)
+{
+	int		fd;
+	char	*fdata;
+
+	fd = open(path, O_RDONLY);
+	if (fd < 0)
+		return (NULL);
+	*fsize = lseek(fd, 0, SEEK_END);
+	if ((off_t)*fsize == (off_t)-1)
+	{
+		close(fd);
+		return (NULL);
+	}
+	lseek(fd, 0, SEEK_SET);
+
+	fdata = malloc(sizeof(char) * (*fsize));
+	if (!fdata)
+	{
+		close(fd);
+		return (NULL);
+	}
+	if (read(fd, fdata, *fsize) < (ssize_t)*fsize)
+	{
+		close (fd);
+		return (NULL);
+	}
+	close(fd);
+	return (fdata);
+}
+
+Elf64   *elf64_read(char *fpath)
 {
     Elf64   *elf;
+	char	*fdata;
+	size_t	fsize;
     size_t  minsize = sizeof(Elf64_Ehdr);
 
+	fdata = read_file(fpath, &fsize);
+
+	if (fdata == NULL)
+		return(NULL);
     if (fsize < minsize)
         return (NULL);
     if ((elf = malloc(sizeof(Elf64))) == NULL)
         return (NULL);
- 
+
     memset(elf, 0, sizeof(Elf64));
 
     if (read_header(elf, fdata) < 0)

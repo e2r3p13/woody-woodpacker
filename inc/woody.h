@@ -22,11 +22,12 @@ typedef struct
 }   Elf64;
 
 void    elf64_free(Elf64 *elf);
-Elf64   *elf64_read(char *fdata, size_t fsize);
+Elf64   *elf64_read(char *fpath);
+void	elf64_print(Elf64 *elf, int flags);
 
 void	elf64_cleanup(elf64_t *elf);
 int		elf64_parse(const char *path, elf64_t *elf);
-void	elf64_print(elf64_t *elf, int flags);
+// void	elf64_print(elf64_t *elf, int flags);
 char	*elf64_get_section_name(elf64_t *elf, Elf64_Shdr *section);
 int		elf64_add_section(elf64_t *elf, char *content, size_t content_length);
 
