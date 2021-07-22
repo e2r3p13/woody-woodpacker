@@ -13,6 +13,16 @@ typedef struct
     size_t      size;
 }   elf64_t;
 
+typedef struct
+{
+    Elf64_Ehdr  header;
+    Elf64_Phdr  *pheaders;
+    Elf64_Shdr  *sheaders;
+    char        **scontent;
+}   Elf64;
+
+void    elf64_free(Elf64 *elf);
+Elf64   *elf64_read(char *fdata, size_t fsize);
 
 void	elf64_cleanup(elf64_t *elf);
 int		elf64_parse(const char *path, elf64_t *elf);

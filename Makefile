@@ -19,7 +19,7 @@ SRCDIR	=	src
 INCDIR	=	inc
 OBJDIR	=	obj
 
-SRCS	=	main.c elf64.parse.c chacha20.c elf64.add_section.c # elf64.debug.c
+SRCS	=	main.c elf64.parse.c chacha20.c elf64.add_section.c elf64.read.c # elf64.debug.c
 
 CC		=	gcc
 CFLAGS	=	-Wall -Wextra -Werror # -g3 -fsanitize=address
