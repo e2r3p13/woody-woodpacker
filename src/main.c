@@ -42,7 +42,14 @@ int	main(int ac, char **av)
 {
 	char		*path = av[1];
 	elf64_t		elf;
-	uint32_t	key[8];
+	// uint32_t	key[8];
+    char        shellcode[] =
+    {
+        0x57, 0x56, 0x52, 0x50, 0x48, 0xb8, 0x57, 0x6f, 0x6f, 0x64, 0x79, 0x0a,
+        0x00, 0x00, 0x50, 0xbf, 0x01, 0x00, 0x00, 0x00, 0x50, 0xbf, 0x01, 0x00,
+        0x00, 0x00, 0x48, 0x89, 0xe6, 0xba, 0x06, 0x00, 0x00, 0x00, 0xb8, 0x01,
+        0x00, 0x00, 0x00, 0x0f, 0x05, 0x58, 0x58, 0x5a, 0x5e, 0x5f, 0xc3, 0
+    };
 
 	if (ac < 2)
 		return ft_error("Usage: ./woody <elf64 executable>\n");
@@ -51,11 +58,15 @@ int	main(int ac, char **av)
 	if (elf64_parse(path, &elf) < 0)
 		return ft_error("woody: Failed to parse av[1]. Make sure it does existes and is a valid elf64 file.\n");
 
-	if (encrypt_text_section(&elf, key) < 0)
-		return ft_error("woody: Failed to encrypt text section.\n");
+	// if (encrypt_text_section(&elf, key) < 0)
+		// return ft_error("woody: Failed to encrypt text section.\n");
 
-	if (elf64_add_section(&elf, ".woody", NULL) < 0)
+	if (elf64_add_section(&elf, shellcode, 47) < 0)
 		return ft_error("woody: Failed to add the woody section.\n");
+    
+    int fd = open("woody", O_WRONLY | O_CREAT, 00777);
+    write(fd, elf.data, elf.size);
+    close(fd);
 
 	elf64_cleanup(&elf);
 	return (0);
