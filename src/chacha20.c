@@ -6,7 +6,7 @@
 /*   By: bccyv <bccyv@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/21 06:25:00 by bccyv             #+#    #+#             */
-/*   Updated: 2021/07/21 17:54:29 by bccyv            ###   ########.fr       */
+/*   Updated: 2021/07/22 22:19:44 by bccyv            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <chacha20.h>
 
 #define ROTL(a,b)						\
 (										\
@@ -51,7 +52,7 @@ static void	chacha_block(uint32_t matrix[16], uint32_t cypher[16])
 		cypher[i] += matrix[i];
 }
 
-int	chacha20_generate_key(uint32_t key[8])
+int	chacha20_keygen(Cha20Key key)
 {
 	int urandfd;
 	int	rdret;
@@ -64,7 +65,7 @@ int	chacha20_generate_key(uint32_t key[8])
 	return (rdret == 32 ? 0 : -1);
 }
 
-void	chacha20_encrypt(char *plaintext, size_t offset, size_t size, uint32_t key[8])
+void	chacha20_encrypt(uint8_t *data, size_t offset, size_t size, Cha20Key key)
 {
 	uint32_t    cypher[16];
 	uint32_t    matrix[16] =
@@ -82,11 +83,11 @@ void	chacha20_encrypt(char *plaintext, size_t offset, size_t size, uint32_t key[
 		    *(uint64_t *)(matrix + 12) += 1;
 		    chacha_block(matrix, cypher);
 		}
-		plaintext[offset + i] ^= ((unsigned char *)cypher)[i % 64];
+		data[offset + i] ^= ((unsigned char *)cypher)[i % 64];
 	}
 }
 
-void	chacha20_decrypt(char *encrypted, size_t offset, size_t size, uint32_t key[8])
+void	chacha20_decrypt(uint8_t *data, size_t offset, size_t size, Cha20Key key)
 {
-	chacha20_encrypt(encrypted, offset, size, key);
+	chacha20_encrypt(data, offset, size, key);
 }

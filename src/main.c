@@ -1,30 +1,24 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main2.c                                            :+:      :+:    :+:   */
+/*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: bccyv <bccyv@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/22 15:40:55 by bccyv             #+#    #+#             */
-/*   Updated: 2021/07/22 21:37:09 by bccyv            ###   ########.fr       */
+/*   Updated: 2021/07/22 22:26:14 by bccyv            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <elf.h>
-#include <woody.h>
 #include <stdio.h>
-
-// char shellcode[] =
-// {
-// 	0x57, 0x56, 0x52, 0x50, 0x48, 0xb8, 0x57, 0x6f, 0x6f, 0x64, 0x79, 0x0a,
-// 	0x00, 0x00, 0x50, 0xbf, 0x01, 0x00, 0x00, 0x00, 0x50, 0xbf, 0x01, 0x00,
-// 	0x00, 0x00, 0x48, 0x89, 0xe6, 0xba, 0x06, 0x00, 0x00, 0x00, 0xb8, 0x01,
-// 	0x00, 0x00, 0x00, 0x0f, 0x05, 0x58, 0x58, 0x5a, 0x5e, 0x5f, 0xc3, 0
-// };
+#include <woody.h>
+#include <chacha20.h>
 
 int main(int ac, char **av)
 {
-	Elf64	*elf;
+	Elf64		*elf;
+	Cha20Key	key;
 
 	if (ac != 2)
 	{
@@ -37,7 +31,15 @@ int main(int ac, char **av)
 		printf("%s: Error, please make sure '%s' exists and is a valid elf64 file\n", av[0], av[1]);
 		return (1);
 	}
-	elf64_print(elf, 0b11111);
+	if (chacha20_keygen(key) < 0)
+	{
+		printf("%s: Failed to generate a chacha20 key\n", av[0]);
+		elf64_free(elf);
+		return (1);
+	}
+	elf64_print(elf, 0b11100);
+	elf64_encrypt_section(elf, ".text", key);
+	elf64_print(elf, 0b11100);
 	elf64_free(elf);
 	return (0);
 }

@@ -6,7 +6,7 @@
 /*   By: bccyv <bccyv@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/22 15:16:21 by bccyv             #+#    #+#             */
-/*   Updated: 2021/07/22 21:33:28 by bccyv            ###   ########.fr       */
+/*   Updated: 2021/07/22 22:08:13 by bccyv            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,7 +103,7 @@ void elf64_print(Elf64 *elf, int flags)
 		for (size_t i = 0; i < elf->header.e_shnum; i++)
 		{
 			printf("\n");
-			print_sname(elf64_get_section_name(elf, elf->sheaders + i));
+			print_sname(elf64_get_section_name(elf, i));
 			if (flags & 0b01000)
 				print_sheader(elf->sheaders + i, padding);
 			if (flags & 0b10000)

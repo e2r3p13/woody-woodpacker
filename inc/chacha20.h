@@ -1,19 +1,24 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   elf64.write.c                                      :+:      :+:    :+:   */
+/*   chacha20.h                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: bccyv <bccyv@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2021/07/22 21:35:50 by bccyv             #+#    #+#             */
-/*   Updated: 2021/07/22 22:01:07 by bccyv            ###   ########.fr       */
+/*   Created: 2021/07/22 21:54:01 by bccyv             #+#    #+#             */
+/*   Updated: 2021/07/22 22:17:24 by bccyv            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <elf.h>
-#include <woody.h>
+#ifndef CHACHA20_H
+#define CHACHA20_H
 
-// int	elf64_write(Elf64 *elf, const char *path)
-// {
-// 	return (0);
-// }
+#include <stddef.h>
+
+typedef uint32_t Cha20Key[8];
+
+void	chacha20_encrypt(uint8_t *data, size_t offset, size_t size, Cha20Key key);
+void	chacha20_decrypt(uint8_t *data, size_t offset, size_t size, Cha20Key key);
+int		chacha20_keygen(Cha20Key key);
+
+#endif
