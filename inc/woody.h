@@ -6,30 +6,19 @@
 
 typedef struct
 {
-    Elf64_Ehdr  header;
-    Elf64_Phdr  *segments;
-    Elf64_Shdr  *sections;
-    char        *data;
-    size_t      size;
-}   elf64_t;
+    Elf64_Ehdr	header;
+    Elf64_Phdr	*pheaders;
+    Elf64_Shdr	*sheaders;
+    uint8_t		**scontent;
+}	Elf64;
 
-typedef struct
-{
-    Elf64_Ehdr  header;
-    Elf64_Phdr  *pheaders;
-    Elf64_Shdr  *sheaders;
-    char        **scontent;
-}   Elf64;
-
-void    elf64_free(Elf64 *elf);
 Elf64   *elf64_read(char *fpath);
 void	elf64_print(Elf64 *elf, int flags);
+int		elf64_write(Elf64 *elf, const char *path);
+void    elf64_free(Elf64 *elf);
 
-void	elf64_cleanup(elf64_t *elf);
-int		elf64_parse(const char *path, elf64_t *elf);
-// void	elf64_print(elf64_t *elf, int flags);
-char	*elf64_get_section_name(elf64_t *elf, Elf64_Shdr *section);
-int		elf64_add_section(elf64_t *elf, char *content, size_t content_length);
+char	*elf64_get_section_name(Elf64 *elf, Elf64_Shdr *section);
+int		elf64_add_section(Elf64 *elf, char *sname, uint8_t *scontent, size_t ssize);
 
 void    chacha20_encrypt(char *txt, size_t offset, size_t size, uint32_t key[16]);
 void    chacha20_decrypt(char *txt, size_t offset, size_t size, uint32_t key[16]);

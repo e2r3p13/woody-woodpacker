@@ -1,22 +1,22 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   elf64.add_section.c                                :+:      :+:    :+:   */
+/*   elf64.utils.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: bccyv <bccyv@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2021/07/21 19:38:27 by bccyv             #+#    #+#             */
-/*   Updated: 2021/07/22 21:43:10 by bccyv            ###   ########.fr       */
+/*   Created: 2021/07/22 21:34:31 by bccyv             #+#    #+#             */
+/*   Updated: 2021/07/22 21:35:01 by bccyv            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <woody.h>
-#include <string.h>
-#include <stdlib.h>
 #include <elf.h>
+#include <woody.h>
 
-int elf64_add_section(Elf64 *elf, char *sname, uint8_t *scontent, size_t ssize)
+char *elf64_get_section_name(Elf64 *elf, Elf64_Shdr *section)
 {
-	
-	return (0);
+	size_t	secname_index;
+
+	secname_index = elf->header.e_shstrndx;
+	return ((char *)(elf->scontent[secname_index] + section->sh_name));
 }

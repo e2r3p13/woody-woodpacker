@@ -6,7 +6,7 @@
 /*   By: bccyv <bccyv@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/22 15:16:21 by bccyv             #+#    #+#             */
-/*   Updated: 2021/07/22 16:07:20 by bccyv            ###   ########.fr       */
+/*   Updated: 2021/07/22 21:33:28 by bccyv            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,34 +14,34 @@
 #include <woody.h>
 #include <stdio.h>
 
-static void print_header(Elf64_Ehdr *hdr)
+static void print_header(Elf64_Ehdr *hdr, int padding)
 {
-	printf("e_ident: %s\n", hdr->e_ident);
-	printf("e_type: 0x%x\n", hdr->e_type);
-	printf("e_machine: 0x%x\n", hdr->e_machine);
-	printf("e_version: 0x%x\n", hdr->e_version);
-	printf("e_entry: 0x%llx\n", hdr->e_entry);
-	printf("e_phoff: %lld\n", hdr->e_phoff);
-	printf("e_shoff: %lld\n", hdr->e_shoff);
-	printf("e_flags: 0x%x\n", hdr->e_flags);
-	printf("e_ehsize: %d\n", hdr->e_ehsize);
-	printf("e_phentsize: %d\n", hdr->e_phentsize);
-	printf("e_phnum: %d\n", hdr->e_phnum);
-	printf("e_shentsize: %d\n", hdr->e_shentsize);
-	printf("e_shnum: %d\n", hdr->e_shnum);
-	printf("e_shstrndx: %d\n", hdr->e_shstrndx);
+	printf("%*se_ident: %s\n", padding, "", hdr->e_ident);
+	printf("%*se_type: 0x%x\n", padding, "", hdr->e_type);
+	printf("%*se_machine: 0x%x\n", padding, "", hdr->e_machine);
+	printf("%*se_version: 0x%x\n", padding, "", hdr->e_version);
+	printf("%*se_entry: 0x%llx\n", padding, "", hdr->e_entry);
+	printf("%*se_phoff: %lld\n", padding, "", hdr->e_phoff);
+	printf("%*se_shoff: %lld\n", padding, "", hdr->e_shoff);
+	printf("%*se_flags: 0x%x\n", padding, "", hdr->e_flags);
+	printf("%*se_ehsize: %d\n", padding, "", hdr->e_ehsize);
+	printf("%*se_phentsize: %d\n", padding, "", hdr->e_phentsize);
+	printf("%*se_phnum: %d\n", padding, "", hdr->e_phnum);
+	printf("%*se_shentsize: %d\n", padding, "", hdr->e_shentsize);
+	printf("%*se_shnum: %d\n", padding, "", hdr->e_shnum);
+	printf("%*se_shstrndx: %d\n", padding, "", hdr->e_shstrndx);
 }
 
-static void print_pheader(Elf64_Phdr *phdr)
+static void print_pheader(Elf64_Phdr *phdr, int padding)
 {
-	printf("p_type 0x %x\n", phdr->p_type);
-	printf("p_flags 0x%x\n", phdr->p_flags);
-	printf("p_offset %lld\n", phdr->p_offset);
-	printf("p_vaddr 0x%llx\n", phdr->p_vaddr);
-	printf("p_paddr 0x%llx\n", phdr->p_paddr);
-	printf("p_filesz %lld\n", phdr->p_filesz);
-	printf("p_memsz %lld\n", phdr->p_memsz);
-	printf("p_align %lld\n", phdr->p_align);
+	printf("%*sp_type 0x %x\n", padding, "", phdr->p_type);
+	printf("%*sp_flags 0x%x\n", padding, "", phdr->p_flags);
+	printf("%*sp_offset %lld\n", padding, "", phdr->p_offset);
+	printf("%*sp_vaddr 0x%llx\n", padding, "", phdr->p_vaddr);
+	printf("%*sp_paddr 0x%llx\n", padding, "", phdr->p_paddr);
+	printf("%*sp_filesz %lld\n", padding, "", phdr->p_filesz);
+	printf("%*sp_memsz %lld\n", padding, "", phdr->p_memsz);
+	printf("%*sp_align %lld\n", padding, "", phdr->p_align);
 }
 
 static void print_sname(char *sname)
@@ -49,48 +49,65 @@ static void print_sname(char *sname)
 	printf("%s\n", sname);
 }
 
-static void print_sheader(Elf64_Shdr *shdr)
+static void print_sheader(Elf64_Shdr *shdr, int padding)
 {
-	printf("sh_name: %d\n", shdr->sh_name);
-	printf("sh_type: 0x%x\n", shdr->sh_type);
-	printf("sh_flags: 0x%llx\n", shdr->sh_flags);
-	printf("sh_addr: 0x%llx\n", shdr->sh_addr);
-	printf("sh_offset: %lld\n", shdr->sh_offset);
-	printf("sh_size: %lld\n", shdr->sh_size);
-	printf("sh_link: 0x%x\n", shdr->sh_link);
-	printf("sh_info: 0x%x\n", shdr->sh_info);
-	printf("sh_addralign: 0x%llx\n", shdr->sh_addralign);
-	printf("sh_entsize: %lld\n", shdr->sh_entsize);
+	printf("%*ssh_name: %d\n", padding, "", shdr->sh_name);
+	printf("%*ssh_type: 0x%x\n", padding, "", shdr->sh_type);
+	printf("%*ssh_flags: 0x%llx\n", padding, "", shdr->sh_flags);
+	printf("%*ssh_addr: 0x%llx\n", padding, "", shdr->sh_addr);
+	printf("%*ssh_offset: %lld\n", padding, "", shdr->sh_offset);
+	printf("%*ssh_size: %lld\n", padding, "", shdr->sh_size);
+	printf("%*ssh_link: 0x%x\n", padding, "", shdr->sh_link);
+	printf("%*ssh_info: 0x%x\n", padding, "", shdr->sh_info);
+	printf("%*ssh_addralign: 0x%llx\n", padding, "", shdr->sh_addralign);
+	printf("%*ssh_entsize: %lld\n", padding, "", shdr->sh_entsize);
 }
 
-static void print_scontent(char *scontent)
+static void print_scontent(uint8_t *scontent, size_t size, int padding)
 {
-	printf("[...]\n");
+	int	bytes_per_line = 25;
+
+	if (size > 0)
+	{
+		for (size_t i = 0; i < size - 1; i++)
+		{
+			if (i % bytes_per_line == 0)
+				printf("\n%*s", padding, "");
+			printf("%.2x ", scontent[i]);
+		}
+		printf("%x\n", scontent[size - 1]);
+	}
 }
 
 void elf64_print(Elf64 *elf, int flags)
 {
+	int	padding = 4;
+
 	if (flags & 0b00001)
 	{
-		printf("-- HEADER --\n");
-		print_header(&elf->header);
+		printf("-- HEADER --\n\n");
+		print_header(&elf->header, 0);
 	}
 	if (flags & 0b00010)
 	{
-		printf("-- SEGMENTS --\n");
+		printf("\n-- SEGMENTS --\n");
 		for (size_t i = 0; i < elf->header.e_phnum; i++)
-			print_pheader(elf->pheaders + i);
+		{
+			printf("\n");
+			print_pheader(elf->pheaders + i, 0);
+		}
 	}
 	if (flags & 0b00100)
 	{
-		printf("-- SECTIONS --\n");
+		printf("\n-- SECTIONS --\n");
 		for (size_t i = 0; i < elf->header.e_shnum; i++)
 		{
+			printf("\n");
 			print_sname(elf64_get_section_name(elf, elf->sheaders + i));
 			if (flags & 0b01000)
-				print_sheader(elf->sheaders + i);
+				print_sheader(elf->sheaders + i, padding);
 			if (flags & 0b10000)
-				print_scontent(elf->scontent[i]);
+				print_scontent(elf->scontent[i], elf->sheaders[i].sh_size, padding);
 		}
 	}
 }

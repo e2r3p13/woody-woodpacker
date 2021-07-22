@@ -4,6 +4,7 @@
 #include <string.h>
 #include <fcntl.h>
 #include <woody.h>
+#include <stdio.h>
 
 void elf64_free(Elf64 *elf)
 {
@@ -31,8 +32,6 @@ static int read_header(Elf64 *elf, char *fdata)
     memcpy(&elf->header, fdata, hsize);
 
     if (strncmp((char *)elf->header.e_ident, ELFMAG, SELFMAG) != 0)
-        return (-1);
-    if (elf->header.e_machine != 0x03)
         return (-1);
 
     return (0);
