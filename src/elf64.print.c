@@ -20,9 +20,9 @@ static void print_header(Elf64_Ehdr *hdr, int padding)
 	printf("%*se_type: 0x%x\n", padding, "", hdr->e_type);
 	printf("%*se_machine: 0x%x\n", padding, "", hdr->e_machine);
 	printf("%*se_version: 0x%x\n", padding, "", hdr->e_version);
-	printf("%*se_entry: 0x%llx\n", padding, "", hdr->e_entry);
-	printf("%*se_phoff: %lld\n", padding, "", hdr->e_phoff);
-	printf("%*se_shoff: %lld\n", padding, "", hdr->e_shoff);
+	printf("%*se_entry: 0x%lx\n", padding, "", hdr->e_entry);
+	printf("%*se_phoff: %ld\n", padding, "", hdr->e_phoff);
+	printf("%*se_shoff: %ld\n", padding, "", hdr->e_shoff);
 	printf("%*se_flags: 0x%x\n", padding, "", hdr->e_flags);
 	printf("%*se_ehsize: %d\n", padding, "", hdr->e_ehsize);
 	printf("%*se_phentsize: %d\n", padding, "", hdr->e_phentsize);
@@ -36,12 +36,12 @@ static void print_pheader(Elf64_Phdr *phdr, int padding)
 {
 	printf("%*sp_type 0x %x\n", padding, "", phdr->p_type);
 	printf("%*sp_flags 0x%x\n", padding, "", phdr->p_flags);
-	printf("%*sp_offset %lld\n", padding, "", phdr->p_offset);
-	printf("%*sp_vaddr 0x%llx\n", padding, "", phdr->p_vaddr);
-	printf("%*sp_paddr 0x%llx\n", padding, "", phdr->p_paddr);
-	printf("%*sp_filesz %lld\n", padding, "", phdr->p_filesz);
-	printf("%*sp_memsz %lld\n", padding, "", phdr->p_memsz);
-	printf("%*sp_align %lld\n", padding, "", phdr->p_align);
+	printf("%*sp_offset %ld\n", padding, "", phdr->p_offset);
+	printf("%*sp_vaddr 0x%lx\n", padding, "", phdr->p_vaddr);
+	printf("%*sp_paddr 0x%lx\n", padding, "", phdr->p_paddr);
+	printf("%*sp_filesz %ld\n", padding, "", phdr->p_filesz);
+	printf("%*sp_memsz %ld\n", padding, "", phdr->p_memsz);
+	printf("%*sp_align %ld\n", padding, "", phdr->p_align);
 }
 
 static void print_sname(char *sname)
@@ -53,14 +53,14 @@ static void print_sheader(Elf64_Shdr *shdr, int padding)
 {
 	printf("%*ssh_name: %d\n", padding, "", shdr->sh_name);
 	printf("%*ssh_type: 0x%x\n", padding, "", shdr->sh_type);
-	printf("%*ssh_flags: 0x%llx\n", padding, "", shdr->sh_flags);
-	printf("%*ssh_addr: 0x%llx\n", padding, "", shdr->sh_addr);
-	printf("%*ssh_offset: %lld\n", padding, "", shdr->sh_offset);
-	printf("%*ssh_size: %lld\n", padding, "", shdr->sh_size);
+	printf("%*ssh_flags: 0x%lx\n", padding, "", shdr->sh_flags);
+	printf("%*ssh_addr: 0x%lx\n", padding, "", shdr->sh_addr);
+	printf("%*ssh_offset: %ld\n", padding, "", shdr->sh_offset);
+	printf("%*ssh_size: %ld\n", padding, "", shdr->sh_size);
 	printf("%*ssh_link: 0x%x\n", padding, "", shdr->sh_link);
 	printf("%*ssh_info: 0x%x\n", padding, "", shdr->sh_info);
-	printf("%*ssh_addralign: 0x%llx\n", padding, "", shdr->sh_addralign);
-	printf("%*ssh_entsize: %lld\n", padding, "", shdr->sh_entsize);
+	printf("%*ssh_addralign: 0x%lx\n", padding, "", shdr->sh_addralign);
+	printf("%*ssh_entsize: %ld\n", padding, "", shdr->sh_entsize);
 }
 
 static void print_scontent(uint8_t *scontent, size_t size, int padding)

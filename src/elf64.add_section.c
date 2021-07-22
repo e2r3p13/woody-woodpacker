@@ -32,10 +32,10 @@
 	- Update the section table offset in main header
 	- Find a way to make the last loadable segment also load the last section
 */
-int elf64_add_section(Elf64 *elf, char *sname, uint8_t *scontent, size_t ssize)
-{
-	Elf64_Shdr	new_section;
-
-
-	return (0);
-}
+//int elf64_add_section(Elf64 *elf, char *sname, uint8_t *scontent, size_t ssize)
+//{
+//	Elf64_Shdr	new_section;
+//
+//
+//	return (0);
+//}

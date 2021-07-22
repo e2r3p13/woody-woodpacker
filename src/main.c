@@ -19,6 +19,7 @@ int main(int ac, char **av)
 {
 	Elf64		*elf;
 	Cha20Key	key;
+    char        outpath[] = "woody";
 
 	if (ac != 2)
 	{
@@ -37,9 +38,17 @@ int main(int ac, char **av)
 		elf64_free(elf);
 		return (1);
 	}
-	elf64_print(elf, 0b11100);
-	elf64_encrypt_section(elf, ".text", key);
-	elf64_print(elf, 0b11100);
+
+    // elf64_print(elf, 0b11100);
+	// elf64_encrypt_section(elf, ".text", key);
+	// elf64_print(elf, 0b11100);
+
+    if (elf64_write(elf, outpath) < 0)
+	{
+        printf("%s: Warning, some write operation has failed, the file may not be recognized\n", av[1]);
+		elf64_free(elf);
+		return (1);
+	}
 	elf64_free(elf);
 	return (0);
 }

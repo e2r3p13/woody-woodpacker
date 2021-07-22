@@ -21,11 +21,11 @@ OBJDIR	=	obj
 
 SRCS	=	chacha20.c				\
 			elf64.add_section.c		\
-			elf64.print.c			\
 			elf64.read.c			\
 			elf64.utils.c			\
 			elf64.write.c			\
 			main.c					\
+			elf64.print.c			\
 
 CC		=	gcc
 CFLAGS	=	-Wall -Wextra -Werror # -g3 -fsanitize=address
@@ -57,6 +57,8 @@ clean: _clean
 fclean: _clean
 ifeq ($(shell ls -1 | grep $(NAME)),$(NAME))
 	@rm -rf $(NAME)
+	@rm -rf woody
+	@printf "[\e[31mCLEAN\e[0m] %s\n" woody
 	@printf "[\e[31mCLEAN\e[0m] %s\n" $(NAME)
 endif
 
