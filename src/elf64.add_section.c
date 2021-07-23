@@ -15,27 +15,6 @@
 #include <stdlib.h>
 #include <elf.h>
 
-static size_t find_target_section_index(Elf64 *elf)
-{
-	for (size_t i = 0; i < elf->header.e_shnum; i++)
-	{
-		if (elf->sheaders[i].sh_type == SHT_NOBITS)
-			return (i);
-	}
-	return (0);
-}
-
-static Elf64_Phdr *get_last_ptload(Elf64 *elf)
-{
-	size_t last = 0;
-	
-	for (size_t i = 0; i < elf->header.e_phnum; i++)
-	{
-		if (elf->pheaders[i].p_type == PT_LOAD)
-			last = i;
-	}
-	return (last > 0 ? elf->pheaders + last : NULL);
-}
 
 static Elf64_Phdr *get_ptnote(Elf64 *elf)
 {
@@ -47,55 +26,73 @@ static Elf64_Phdr *get_ptnote(Elf64 *elf)
 	return (NULL);
 }
 
-int elf64_inject_loader(Elf64 *elf, uint8_t *loader, size_t lsize)
+static Elf64_Shdr *get_note_section(Elf64 *elf, size_t *notendx)
 {
-	size_t		cndx;
-	Elf64_Shdr	*corrupted;
-	Elf64_Phdr	*last_ptload;
-	Elf64_Phdr	*ptnote;
-
-	cndx = find_target_section_index(elf);
-	if (cndx == 0)
-		return (-1);
-	corrupted = elf->sheaders + cndx;
-
-	if (corrupted->sh_size > lsize)
+	for (size_t i = 0; i < elf->header.e_shnum; i++)
 	{
-		memset(elf->scontent[cndx], 0, corrupted->sh_size);
-		memcpy(elf->scontent[cndx], loader, lsize);
+		if (elf->sheaders[i].sh_type == SHT_NOTE)
+		{
+			*notendx = i;
+			return (elf->sheaders + i);
+		}
 	}
-	else
-	{
-		uint8_t *new_content = malloc(sizeof(uint8_t) * lsize);
-		if (new_content == NULL)
-			return (-1);
-		memcpy(new_content, loader, lsize);
-		free(elf->scontent[cndx]);
-		elf->scontent[cndx] = new_content;
-		corrupted->sh_size = lsize;
-	}
+	return (NULL);
+}
 
-	last_ptload = get_last_ptload(elf);
-	if (last_ptload == NULL)
+int elf64_inject_loader_after_sectable(Elf64 *elf, uint8_t *loader, size_t lsize)
+{
+	Elf64_Phdr	*note_segment;
+	Elf64_Shdr	*note_section;
+	size_t		note_secndx;
+	char		*note_secname;
+	uint8_t		*new_note_content;
+
+	size_t		loader_offset;
+	size_t		loader_vaddr;
+
+	// search for a note segment and a note section
+	note_segment = get_ptnote(elf);
+	note_section = get_note_section(elf, &note_secndx);
+	if (note_segment == NULL || note_section == NULL)
 		return (-1);
-
-	ptnote = get_ptnote(elf);
-	if (ptnote == NULL)
-		return (-1);
-
-	// Make the last loadable segment longer enough to contain the corrupted section
-	//last_ptload->p_filesz = (corrupted->sh_addr - last_ptload->p_vaddr) + corrupted->sh_size;
-	//last_ptload->p_memsz = last_ptload->p_filesz;
-	//last_ptload->p_flags = PF_X | PF_R;
 	
-	// Modify the ptnote segment to point to the corrupted section
-	ptnote->p_type = PT_LOAD;
-	ptnote->p_flags = PF_X | PF_R;
-	ptnote->p_vaddr += corrupted->sh_addr;
-	//ptnote->p_paddr += corrupted->sh_addr;
-	//ptnote->p_filesz = corrupted->sh_size;
-	//ptnote->p_memsz = corrupted->sh_size;
+	// Replace the note section content with our payload
+	new_note_content = malloc(sizeof(uint8_t) * lsize);
+	if (new_note_content == NULL)
+		return (-1);
+	memcpy(new_note_content, loader, lsize);
+	free(elf->scontent[note_secndx]);
+	elf->scontent[note_secndx] = new_note_content;
 
-	//elf->header.e_entry = ptnote->p_vaddr;
-	return (0);	
+	// Compute the offset and the addr of our injected code
+	loader_offset = elf->header.e_shoff + (elf->header.e_shnum * elf->header.e_shentsize);
+	loader_offset += 4096 - (loader_offset % 4096);
+	loader_vaddr = 0xc000000;
+	loader_vaddr += 4096 - (loader_vaddr % 4096);
+
+	// Corrupt the note section to inject our payload
+	note_section->sh_type = SHT_PROGBITS;
+	note_section->sh_flags = SHF_EXECINSTR;
+	note_section->sh_offset = loader_offset;
+	note_section->sh_addr = loader_vaddr;
+	note_section->sh_size = lsize;
+	note_section->sh_addralign = 16;
+	
+	// Rename the corrupted section to detect previous packed binary and avoid to repack it
+	note_secname = elf64_get_section_name(elf, note_secndx);
+	strcpy(note_secname, ".woody");
+
+	// Corrupt the note segment to make it loadable / readable / executable and point to our corrupted note section
+	note_segment->p_type = PT_LOAD;
+	note_segment->p_flags = PF_X | PF_R;
+	note_segment->p_offset = loader_offset;
+	note_segment->p_align = 16;
+	note_segment->p_vaddr = loader_vaddr;
+	note_segment->p_filesz = lsize;
+	note_segment->p_memsz = lsize;
+
+	// Change the program entrypoint to our loader
+	elf->header.e_entry = loader_vaddr;
+
+	return (0);
 }

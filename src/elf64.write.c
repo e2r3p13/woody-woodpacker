@@ -15,8 +15,32 @@
 #include <woody.h>
 #include <unistd.h>
 
+long	get_file_size(int fd)
+{
+	long	curr;
+	long	size;
+
+	curr = lseek(fd, 0, SEEK_CUR);
+	size = lseek(fd, 0, SEEK_END);
+	lseek(fd, curr, SEEK_SET);
+
+	return (size);
+}
+
 static int padd(int fd, size_t dst, size_t *off)
 {
+	long	fsz;
+
+	fsz = get_file_size(fd);
+	if (fsz == -1)
+		return (-1);
+
+	if (fsz >= (long)dst)
+	{
+		if (lseek(fd, dst, SEEK_SET) == -1)
+			return (-1);
+		return (0);
+	}
     while (*off < dst)
     {
         if (write(fd, &(char){0x00}, 1) < 1)
@@ -72,12 +96,15 @@ static int write_scontents(Elf64 *elf, int fd, size_t *off)
 static int write_sheaders(Elf64 *elf, int fd, size_t *off)
 {
     unsigned int shsize = sizeof(Elf64_Shdr) * elf->header.e_shnum;
-    
-    if (padd(fd, elf->header.e_shoff, off) < 0)
-        return (-1);
+
+	
+	if (padd(fd, elf->header.e_shoff, off) < 0)
+    	return (-1);
     if (write(fd, (uint8_t *)(elf->sheaders), shsize) < shsize)
         return (-1);
     *off += shsize;
+
+	lseek(fd, 0, SEEK_END);
 
     return (0);
 }

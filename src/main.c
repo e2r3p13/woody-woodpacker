@@ -58,18 +58,18 @@ int main(int ac, char **av)
 	}
 	// elf64_encrypt_section(elf, ".text", key);
 	
-	// elf64_print(elf, 0b1110);
+	elf64_print(elf, 0b00011);
 
 	// Try to find a section to corrupt and inject our shellcode inside
 	// Also extend the last segment to make sure the section is loadable
-	if (elf64_inject_loader(elf, infinite, sizeof infinite) < 0)
+	if (elf64_inject_loader_after_sectable(elf, infinite, sizeof infinite) < 0)
 	{
 		printf("%s: Failed to inject the loader\n", av[1]);
 		elf64_free(elf);
 		return (1);
 	}
 
-	elf64_print(elf, 0b01100);
+	elf64_print(elf, 0b11);
 	
 	// Output a new elf file from the Elf64 structure
 	if (elf64_write(elf, outpath) < 0)
