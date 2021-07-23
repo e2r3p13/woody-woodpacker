@@ -6,7 +6,7 @@
 #include <woody.h>
 #include <stdio.h>
 
-void elf64_free(Elf64 *elf)
+void elf64_free(t_elf *elf)
 {
     if (elf != NULL)
     {
@@ -25,7 +25,7 @@ void elf64_free(Elf64 *elf)
     }
 }
 
-static int read_header(Elf64 *elf, char *fdata)
+static int read_header(t_elf *elf, char *fdata)
 {
     size_t hsize = sizeof(Elf64_Ehdr);
 
@@ -37,7 +37,7 @@ static int read_header(Elf64 *elf, char *fdata)
     return (0);
 }
 
-static int read_pheaders(Elf64 *elf, char *fdata)
+static int read_pheaders(t_elf *elf, char *fdata)
 {
     size_t phsize = sizeof(Elf64_Phdr) * elf->header.e_phnum;
 
@@ -50,7 +50,7 @@ static int read_pheaders(Elf64 *elf, char *fdata)
     return (0);
 }
 
-static int read_sheaders(Elf64 *elf, char *fdata)
+static int read_sheaders(t_elf *elf, char *fdata)
 {
     size_t shsize = sizeof(Elf64_Shdr) * elf->header.e_shnum;
 
@@ -63,7 +63,7 @@ static int read_sheaders(Elf64 *elf, char *fdata)
     return (0);
 }
 
-static int read_scontent(Elf64 *elf, char *fdata)
+static int read_scontent(t_elf *elf, char *fdata)
 {
     Elf64_Shdr  *shdr;
 
@@ -82,7 +82,7 @@ static int read_scontent(Elf64 *elf, char *fdata)
     return (0);
 }
 
-static char *read_file(const char *path, size_t *fsize)
+static char *read_file(const char *path, long *fsize)
 {
 	int		fd;
 	char	*fdata;
@@ -90,60 +90,49 @@ static char *read_file(const char *path, size_t *fsize)
 	fd = open(path, O_RDONLY);
 	if (fd < 0)
 		return (NULL);
-	*fsize = lseek(fd, 0, SEEK_END);
-	if ((off_t)*fsize == (off_t)-1)
-	{
-		close(fd);
+
+	*fsize = get_file_size(fd);
+	if (fsize < 0)
 		return (NULL);
-	}
-	lseek(fd, 0, SEEK_SET);
 
 	fdata = malloc(sizeof(char) * (*fsize));
-	if (!fdata)
+	if (fdata == NULL || read(fd, fdata, *fsize) < *fsize)
 	{
 		close(fd);
 		return (NULL);
 	}
-	if (read(fd, fdata, *fsize) < (ssize_t)*fsize)
-	{
-		close (fd);
-		return (NULL);
-	}
+
 	close(fd);
 	return (fdata);
 }
 
-Elf64   *elf64_read(char *fpath)
+t_elf *elf64_read(char *fpath)
 {
-    Elf64   *elf;
+    t_elf	*elf;
 	char	*fdata;
-	size_t	fsize;
-    size_t  minsize = sizeof(Elf64_Ehdr);
+	long	fsize;
+    long	minsize = sizeof(Elf64_Ehdr);
 
 	fdata = read_file(fpath, &fsize);
-
-	if (fdata == NULL)
+	if (fdata == NULL || fsize < minsize)
 		return(NULL);
-    if (fsize < minsize)
-        return (NULL);
-    if ((elf = malloc(sizeof(Elf64))) == NULL)
-        return (NULL);
 
-    memset(elf, 0, sizeof(Elf64));
+    if ((elf = malloc(sizeof(t_elf))) == NULL)
+        return (NULL);
+    memset(elf, 0, sizeof(t_elf));
 
     if (read_header(elf, fdata) < 0)
     {
         elf64_free(elf);
         return (NULL);
     }
-
-    minsize += sizeof(Elf64_Phdr) * elf->header.e_phnum + sizeof(Elf64_Shdr) * elf->header.e_shnum;
+    minsize += sizeof(Elf64_Phdr) * elf->header.e_phnum;
+	minsize += sizeof(Elf64_Shdr) * elf->header.e_shnum;
     if (fsize < minsize || read_pheaders(elf, fdata) < 0 || read_sheaders(elf, fdata) < 0)
     {
         elf64_free(elf);
         return (NULL);
     }
-
     for (size_t i = 0; i < elf->header.e_shnum; i++)
         minsize += elf->sheaders[i].sh_size;
     if (fsize < minsize || read_scontent(elf, fdata) < 0)

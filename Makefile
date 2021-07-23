@@ -6,7 +6,7 @@
 #    By: lfalkau <lfalkau@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2021/07/17 02:40:03 by lfalkau           #+#    #+#              #
-#    Updated: 2021/07/22 21:40:15 by bccyv            ###   ########.fr        #
+#    Updated: 2021/07/24 01:16:29 by bccyv            ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -20,12 +20,12 @@ INCDIR	=	inc
 OBJDIR	=	obj
 
 SRCS	=	chacha20.c				\
-			elf64.add_section.c		\
+			elf64.inject.c			\
 			elf64.read.c			\
 			elf64.utils.c			\
 			elf64.write.c			\
 			main.c					\
-			elf64.print.c			\
+			# elf64.print.c			\
 
 CC		=	gcc
 CFLAGS	=	-Wall -Wextra -Werror # -g3 -fsanitize=address

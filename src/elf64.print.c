@@ -6,13 +6,19 @@
 /*   By: bccyv <bccyv@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/22 15:16:21 by bccyv             #+#    #+#             */
-/*   Updated: 2021/07/22 22:08:13 by bccyv            ###   ########.fr       */
+/*   Updated: 2021/07/24 01:34:53 by bccyv            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <elf.h>
 #include <woody.h>
 #include <stdio.h>
+
+#define PR_EHDR 0b10000
+#define PR_PHDR 0b01000
+#define PR_SNAM 0b00100
+#define PR_SHDR 0b00010
+#define PR_SDTA 0b00001
 
 static void print_header(Elf64_Ehdr *hdr, int padding)
 {
@@ -79,16 +85,16 @@ static void print_scontent(uint8_t *scontent, size_t size, int padding)
 	}
 }
 
-void elf64_print(Elf64 *elf, int flags)
+void elf64_print(t_elf *elf, int flags)
 {
 	int	padding = 4;
 
-	if (flags & 0b00001)
+	if (flags & PR_EHDR)
 	{
 		printf("-- HEADER --\n\n");
 		print_header(&elf->header, 0);
 	}
-	if (flags & 0b00010)
+	if (flags & PR_PHDR)
 	{
 		printf("\n-- SEGMENTS --\n");
 		for (size_t i = 0; i < elf->header.e_phnum; i++)
@@ -97,16 +103,16 @@ void elf64_print(Elf64 *elf, int flags)
 			print_pheader(elf->pheaders + i, 0);
 		}
 	}
-	if (flags & 0b00100)
+	if (flags & PR_SNAM)
 	{
 		printf("\n-- SECTIONS --\n");
 		for (size_t i = 0; i < elf->header.e_shnum; i++)
 		{
 			printf("\n");
 			print_sname(elf64_get_section_name(elf, i));
-			if (flags & 0b01000)
+			if (flags & PR_SHDR)
 				print_sheader(elf->sheaders + i, padding);
-			if (flags & 0b10000)
+			if (flags & PR_SDTA)
 				print_scontent(elf->scontent[i], elf->sheaders[i].sh_size, padding);
 		}
 	}

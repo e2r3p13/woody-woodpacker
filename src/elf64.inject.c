@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   elf64.add_section.c                                :+:      :+:    :+:   */
+/*   elf64.inject.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: bccyv <bccyv@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/21 19:38:27 by bccyv             #+#    #+#             */
-/*   Updated: 2021/07/22 22:30:38 by bccyv            ###   ########.fr       */
+/*   Updated: 2021/07/24 01:15:24 by bccyv            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@
 #include <elf.h>
 
 
-static Elf64_Phdr *get_ptnote(Elf64 *elf)
+static Elf64_Phdr *get_ptnote(t_elf *elf)
 {
 	for (size_t i = 0; i < elf->header.e_phnum; i++)
 	{
@@ -26,7 +26,7 @@ static Elf64_Phdr *get_ptnote(Elf64 *elf)
 	return (NULL);
 }
 
-static Elf64_Shdr *get_note_section(Elf64 *elf, size_t *notendx)
+static Elf64_Shdr *get_note_section(t_elf *elf, size_t *notendx)
 {
 	for (size_t i = 0; i < elf->header.e_shnum; i++)
 	{
@@ -39,7 +39,7 @@ static Elf64_Shdr *get_note_section(Elf64 *elf, size_t *notendx)
 	return (NULL);
 }
 
-int elf64_inject_loader_after_sectable(Elf64 *elf, uint8_t *loader, size_t lsize)
+int elf64_inject(t_elf *elf, uint8_t *loader, size_t lsize)
 {
 	Elf64_Phdr	*note_segment;
 	Elf64_Shdr	*note_section;
@@ -55,7 +55,7 @@ int elf64_inject_loader_after_sectable(Elf64 *elf, uint8_t *loader, size_t lsize
 	note_section = get_note_section(elf, &note_secndx);
 	if (note_segment == NULL || note_section == NULL)
 		return (-1);
-	
+
 	// Replace the note section content with our payload
 	new_note_content = malloc(sizeof(uint8_t) * lsize);
 	if (new_note_content == NULL)
@@ -77,7 +77,7 @@ int elf64_inject_loader_after_sectable(Elf64 *elf, uint8_t *loader, size_t lsize
 	note_section->sh_addr = loader_vaddr;
 	note_section->sh_size = lsize;
 	note_section->sh_addralign = 16;
-	
+
 	// Rename the corrupted section to detect previous packed binary and avoid to repack it
 	note_secname = elf64_get_section_name(elf, note_secndx);
 	strcpy(note_secname, ".woody");

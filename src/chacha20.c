@@ -6,7 +6,7 @@
 /*   By: bccyv <bccyv@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/21 06:25:00 by bccyv             #+#    #+#             */
-/*   Updated: 2021/07/22 22:19:44 by bccyv            ###   ########.fr       */
+/*   Updated: 2021/07/24 01:51:48 by bccyv            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,20 +17,20 @@
 #include <fcntl.h>
 #include <chacha20.h>
 
-#define ROTL(a,b)						\
-(										\
-	((a) << (b)) | ((a) >> (32 - (b)))	\
+#define ROTL(a,b)							\
+(											\
+	((a) << (b)) | ((a) >> (32 - (b)))		\
 )
 
-#define QR(a, b, c, d)		\
-(							\
-	b ^= ROTL(a + d, 7),	\
-	c ^= ROTL(b + a, 9),	\
-	d ^= ROTL(c + b,13),	\
-	a ^= ROTL(d + c,18)		\
+#define QR(a, b, c, d)						\
+(											\
+	b ^= ROTL(a + d, 7),					\
+	c ^= ROTL(b + a, 9),					\
+	d ^= ROTL(c + b,13),					\
+	a ^= ROTL(d + c,18)						\
 )
 
-static void	chacha_block(uint32_t matrix[16], uint32_t cypher[16])
+static void chacha_block(uint32_t matrix[16], uint32_t cypher[16])
 {
 	for (int i = 0; i < 16; i++)
 		cypher[i] = matrix[i];
@@ -52,20 +52,28 @@ static void	chacha_block(uint32_t matrix[16], uint32_t cypher[16])
 		cypher[i] += matrix[i];
 }
 
-int	chacha20_keygen(Cha20Key key)
+int chacha20_keygen(Cha20Key key)
 {
 	int urandfd;
 	int	rdret;
 
 	urandfd = open("/dev/urandom", O_RDONLY);
 	if (urandfd < 0)
+	{
+		printf("Error: Failed to generate a key\n");
 		return (-1);
+	}
 	rdret = read(urandfd, (char *)key, 32);
 	close(urandfd);
-	return (rdret == 32 ? 0 : -1);
+	if (rdret < 32)
+	{
+		printf("Error: Failed to generate a key\n");
+		return (-1);
+	}
+	return (0);
 }
 
-void	chacha20_encrypt(uint8_t *data, size_t offset, size_t size, Cha20Key key)
+void chacha20_run(uint8_t *data, size_t offset, size_t size, Cha20Key key)
 {
 	uint32_t    cypher[16];
 	uint32_t    matrix[16] =
@@ -85,9 +93,4 @@ void	chacha20_encrypt(uint8_t *data, size_t offset, size_t size, Cha20Key key)
 		}
 		data[offset + i] ^= ((unsigned char *)cypher)[i % 64];
 	}
-}
-
-void	chacha20_decrypt(uint8_t *data, size_t offset, size_t size, Cha20Key key)
-{
-	chacha20_encrypt(data, offset, size, key);
 }

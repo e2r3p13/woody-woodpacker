@@ -11,15 +11,16 @@ typedef struct
     Elf64_Phdr	*pheaders;
     Elf64_Shdr	*sheaders;
     uint8_t		**scontent;
-}	Elf64;
+}	t_elf;
 
-Elf64   *elf64_read(char *fpath);
-void	elf64_print(Elf64 *elf, int flags);
-int		elf64_write(Elf64 *elf, const char *path);
-void    elf64_free(Elf64 *elf);
-int		elf64_inject_loader(Elf64 *elf, uint8_t *loader, size_t lsize);
-int		elf64_inject_loader_after_sectable(Elf64 *elf, uint8_t *loader, size_t lsize);
-char	*elf64_get_section_name(Elf64 *elf, size_t index);
-void	elf64_encrypt_section(Elf64 *elf, const char *sname, Cha20Key key);
+t_elf   *elf64_read(char *fpath);
+void	elf64_print(t_elf *elf, int flags);
+int		elf64_write(t_elf *elf, const char *path);
+void    elf64_free(t_elf *elf);
+int		elf64_inject_loader(t_elf *elf, uint8_t *loader, size_t lsize);
+int		elf64_inject(t_elf *elf, uint8_t *loader, size_t lsize);
+char	*elf64_get_section_name(t_elf *elf, size_t index);
+int		elf64_encrypt_section(t_elf *elf, const char *sname, Cha20Key key);
+long	get_file_size(int fd);
 
 #endif
