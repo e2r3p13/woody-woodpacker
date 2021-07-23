@@ -34,7 +34,7 @@ static void print_header(Elf64_Ehdr *hdr, int padding)
 
 static void print_pheader(Elf64_Phdr *phdr, int padding)
 {
-	printf("%*sp_type 0x %x\n", padding, "", phdr->p_type);
+	printf("%*sp_type 0x%x\n", padding, "", phdr->p_type);
 	printf("%*sp_flags 0x%x\n", padding, "", phdr->p_flags);
 	printf("%*sp_offset %ld\n", padding, "", phdr->p_offset);
 	printf("%*sp_vaddr 0x%lx\n", padding, "", phdr->p_vaddr);

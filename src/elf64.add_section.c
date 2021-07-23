@@ -15,27 +15,66 @@
 #include <stdlib.h>
 #include <elf.h>
 
-// char shellcode[] =
-// {
-// 	0x57, 0x56, 0x52, 0x50, 0x48, 0xb8, 0x57, 0x6f, 0x6f, 0x64, 0x79, 0x0a,
-// 	0x00, 0x00, 0x50, 0xbf, 0x01, 0x00, 0x00, 0x00, 0x50, 0xbf, 0x01, 0x00,
-// 	0x00, 0x00, 0x48, 0x89, 0xe6, 0xba, 0x06, 0x00, 0x00, 0x00, 0xb8, 0x01,
-// 	0x00, 0x00, 0x00, 0x0f, 0x05, 0x58, 0x58, 0x5a, 0x5e, 0x5f, 0xc3, 0
-// };
+static size_t find_target_section_index(Elf64 *elf)
+{
+	for (size_t i = 0; i < elf->header.e_shnum; i++)
+	{
+		if (elf->sheaders[i].sh_type == SHT_NOBITS)
+			return (i);
+	}
+	return (0);
+}
 
-/*
-	TODO:
-	- Realloc sheaders to insert new section header
-	- Realloc name section content to add the new section name
-	- Realloc scontent to insert new section content
-	- Fill the new section information
-	- Update the section table offset in main header
-	- Find a way to make the last loadable segment also load the last section
-*/
-//int elf64_add_section(Elf64 *elf, char *sname, uint8_t *scontent, size_t ssize)
-//{
-//	Elf64_Shdr	new_section;
-//
-//
-//	return (0);
-//}
+static Elf64_Phdr *get_last_ptload(Elf64 *elf)
+{
+	size_t last = 0;
+	
+	for (size_t i = 0; i < elf->header.e_phnum; i++)
+	{
+		if (elf->pheaders[i].p_type == PT_LOAD)
+			last = i;
+	}
+	return (last > 0 ? elf->pheaders + last : NULL);
+}
+
+int elf64_inject_loader(Elf64 *elf, uint8_t *loader, size_t lsize)
+{
+	size_t		cndx;
+	Elf64_Shdr	*corrupted;
+	Elf64_Phdr	*last_ptload;
+
+	cndx = find_target_section_index(elf);
+	if (cndx == 0)
+		return (-1);
+	corrupted = elf->sheaders + cndx;
+
+	if (corrupted->sh_size > lsize)
+	{
+		memset(elf->scontent[cndx], 0, corrupted->sh_size);
+		memcpy(elf->scontent[cndx], loader, lsize);
+	}
+	else
+	{
+		uint8_t *new_content = malloc(sizeof(uint8_t) * lsize);
+		if (new_content == NULL)
+			return (-1);
+		memcpy(new_content, loader, lsize);
+		free(elf->scontent[cndx]);
+		elf->scontent[cndx] = new_content;
+	}
+
+	// Useful to debug but unused at runtime. Remove it to be more incognito.
+	corrupted->sh_size = lsize;
+
+	last_ptload = get_last_ptload(elf);
+	if (last_ptload == NULL)
+		return (-1);
+
+	// Make the last loadable segment longer enough to contain the corrupted section
+	last_ptload->p_filesz = (corrupted->sh_addr - last_ptload->p_vaddr) + corrupted->sh_size;
+	//last_ptload->p_memsz = last_ptload->p_filesz;
+	//last_ptload->p_flags = PF_X | PF_R;
+
+	//elf->header.e_entry = corrupted->sh_addr;
+	return (0);	
+}
