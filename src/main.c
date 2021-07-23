@@ -23,6 +23,11 @@ uint8_t shellcode[] =
 	0x00, 0x00, 0x00, 0x0f, 0x05, 0x58, 0x58, 0x5a, 0x5e, 0x5f, 0xc3, 0
 };
 
+uint8_t infinite[] =
+{
+	0xeb, 0xfe
+};
+
 int main(int ac, char **av)
 {
 	Elf64		*elf;
@@ -57,14 +62,14 @@ int main(int ac, char **av)
 
 	// Try to find a section to corrupt and inject our shellcode inside
 	// Also extend the last segment to make sure the section is loadable
-	if (elf64_inject_loader(elf, shellcode, sizeof shellcode) < 0)
+	if (elf64_inject_loader(elf, infinite, sizeof infinite) < 0)
 	{
 		printf("%s: Failed to inject the loader\n", av[1]);
 		elf64_free(elf);
 		return (1);
 	}
 
-	elf64_print(elf, 0b1110);
+	elf64_print(elf, 0b01100);
 	
 	// Output a new elf file from the Elf64 structure
 	if (elf64_write(elf, outpath) < 0)
