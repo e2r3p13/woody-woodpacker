@@ -3,3 +3,5 @@ tests
 woody_woodpacker
 woody
 obj
+*.o
+*.DS_Store
