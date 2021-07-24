@@ -6,7 +6,7 @@
 /*   By: bccyv <bccyv@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/24 04:01:44 by bccyv             #+#    #+#             */
-/*   Updated: 2021/07/24 04:54:08 by bccyv            ###   ########.fr       */
+/*   Updated: 2021/07/24 05:00:38 by bccyv            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,8 +72,9 @@ static int read_header(t_elf *elf, char *fdata)
 		printf("Error: 32 bit ELF files are not supported\n");
 		return (-1);
 	}
-	if (elf->header.e_type != ET_EXEC)
+	if (elf->header.e_type != ET_EXEC && elf->header.e_type != ET_DYN)
 	{
+		printf("%d\n", elf->header.e_type);
 		printf("Error: Only executables are supported\n");
 		return (-1);
 	}
