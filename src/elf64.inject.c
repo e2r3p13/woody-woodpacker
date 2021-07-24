@@ -6,7 +6,7 @@
 /*   By: bccyv <bccyv@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/21 19:38:27 by bccyv             #+#    #+#             */
-/*   Updated: 2021/07/24 01:15:24 by bccyv            ###   ########.fr       */
+/*   Updated: 2021/07/24 17:16:55 by bccyv            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@
 #include <elf.h>
 
 
-static Elf64_Phdr *get_ptnote(t_elf *elf)
+static Elf64_Phdr *get_ptnote_sheader(t_elf *elf)
 {
 	for (size_t i = 0; i < elf->header.e_phnum; i++)
 	{
@@ -26,73 +26,86 @@ static Elf64_Phdr *get_ptnote(t_elf *elf)
 	return (NULL);
 }
 
-static Elf64_Shdr *get_note_section(t_elf *elf, size_t *notendx)
+static size_t get_note_shindex(t_elf *elf)
 {
 	for (size_t i = 0; i < elf->header.e_shnum; i++)
 	{
 		if (elf->sheaders[i].sh_type == SHT_NOTE)
-		{
-			*notendx = i;
-			return (elf->sheaders + i);
-		}
+			return (i);
 	}
-	return (NULL);
+	return (0);
 }
 
-int elf64_inject(t_elf *elf, uint8_t *loader, size_t lsize)
+/*
+ *	We update the name of the corrupted section to be able to check if the
+ *	binary is packed. It's not very discreet and not mandatory but this
+ *	project has educational purpose so be it.
+*/
+static void corrupt_sheader(t_elf *elf, size_t i, size_t soff, size_t ssize, size_t saddr)
 {
-	Elf64_Phdr	*note_segment;
-	Elf64_Shdr	*note_section;
-	size_t		note_secndx;
-	char		*note_secname;
-	uint8_t		*new_note_content;
+	Elf64_Shdr	*shdr = elf->sheaders + i;
+	char		*secname;
 
-	size_t		loader_offset;
-	size_t		loader_vaddr;
+	secname = elf64_get_section_name(elf, i);
+	strcpy(secname, ".woody");
 
-	// search for a note segment and a note section
-	note_segment = get_ptnote(elf);
-	note_section = get_note_section(elf, &note_secndx);
-	if (note_segment == NULL || note_section == NULL)
+	shdr->sh_type = SHT_PROGBITS;
+	shdr->sh_flags = SHF_EXECINSTR;
+	shdr->sh_offset = soff;
+	shdr->sh_addr = saddr;
+	shdr->sh_size = ssize;
+	shdr->sh_addralign = 16;
+}
+
+static int corrupt_scontent(t_elf *elf, size_t secndx, uint8_t *stub, size_t ssize)
+{
+	uint8_t	*new_scontent;
+
+	if ((new_scontent = malloc(sizeof(uint8_t) * ssize)) == NULL)
+		return (-1);
+	memcpy(new_scontent, stub, ssize);
+	free(elf->scontent[secndx]);
+	elf->scontent[secndx] = new_scontent;
+	return (0);
+}
+
+static void corrupt_pheader(Elf64_Phdr *phdr, size_t soff, size_t ssize, size_t saddr)
+{
+	phdr->p_type = PT_LOAD;
+	phdr->p_flags = PF_X | PF_R;
+	phdr->p_offset = soff;
+	phdr->p_align = 16;
+	phdr->p_vaddr = saddr;
+	phdr->p_filesz = ssize;
+	phdr->p_memsz = ssize;
+}
+
+/*
+ *	When injecting the stub, keep in mind that stub_offset % PAGE_SIZE must
+ *	be equal to the stub_virtual_addess % PAGE_SIZE
+*/
+int elf64_inject(t_elf *elf, uint8_t *stub, size_t stub_size)
+{
+	Elf64_Phdr	*note_pheader;
+	size_t		note_shindex;
+	size_t		stub_offset;
+	size_t		stub_vaddr;
+
+	if ((note_pheader = get_ptnote_sheader(elf)) == NULL)
+		return (-1);
+	if ((note_shindex = get_note_shindex(elf)) == 0)
+		return (-1);
+	if (corrupt_scontent(elf, note_shindex, stub, stub_size) < 0)
 		return (-1);
 
-	// Replace the note section content with our payload
-	new_note_content = malloc(sizeof(uint8_t) * lsize);
-	if (new_note_content == NULL)
-		return (-1);
-	memcpy(new_note_content, loader, lsize);
-	free(elf->scontent[note_secndx]);
-	elf->scontent[note_secndx] = new_note_content;
+	stub_offset = elf->header.e_shoff + (elf->header.e_shnum * elf->header.e_shentsize);
+	stub_offset += 4096 - (stub_offset % 4096);
+	stub_vaddr = 0xc000000;
+	stub_vaddr += 4096 - (stub_vaddr % 4096);
 
-	// Compute the offset and the addr of our injected code
-	loader_offset = elf->header.e_shoff + (elf->header.e_shnum * elf->header.e_shentsize);
-	loader_offset += 4096 - (loader_offset % 4096);
-	loader_vaddr = 0xc000000;
-	loader_vaddr += 4096 - (loader_vaddr % 4096);
+	corrupt_sheader(elf, note_shindex, stub_offset, stub_size, stub_vaddr);
+	corrupt_pheader(note_pheader, stub_offset, stub_size, stub_vaddr);
 
-	// Corrupt the note section to inject our payload
-	note_section->sh_type = SHT_PROGBITS;
-	note_section->sh_flags = SHF_EXECINSTR;
-	note_section->sh_offset = loader_offset;
-	note_section->sh_addr = loader_vaddr;
-	note_section->sh_size = lsize;
-	note_section->sh_addralign = 16;
-
-	// Rename the corrupted section to detect previous packed binary and avoid to repack it
-	note_secname = elf64_get_section_name(elf, note_secndx);
-	strcpy(note_secname, ".woody");
-
-	// Corrupt the note segment to make it loadable / readable / executable and point to our corrupted note section
-	note_segment->p_type = PT_LOAD;
-	note_segment->p_flags = PF_X | PF_R;
-	note_segment->p_offset = loader_offset;
-	note_segment->p_align = 16;
-	note_segment->p_vaddr = loader_vaddr;
-	note_segment->p_filesz = lsize;
-	note_segment->p_memsz = lsize;
-
-	// Change the program entrypoint to our loader
-	elf->header.e_entry = loader_vaddr;
-
+	elf->header.e_entry = stub_vaddr;
 	return (0);
 }
