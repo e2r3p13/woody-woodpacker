@@ -34,7 +34,9 @@ Several methods can be used to inject the stub. Here's the one that I choosed:
 ## Ressources
 
 [Chacha20 RFC](https://datatracker.ietf.org/doc/html/rfc7539)
+
 [Chacha20  - Computerphile](https://www.youtube.com/watch?v=UeIpq-C-GSA&pp=ugMICgJmchABGAE=)
 
 [Elf - Wikipedia](https://en.wikipedia.org/wiki/Executable_and_Linkable_Format)
+
 [Executable and Linkable Format](http://www.skyfree.org/linux/references/ELF_Format.pdf)
