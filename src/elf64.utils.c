@@ -6,7 +6,7 @@
 /*   By: bccyv <bccyv@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/22 21:34:31 by bccyv             #+#    #+#             */
-/*   Updated: 2021/07/24 01:50:52 by bccyv            ###   ########.fr       */
+/*   Updated: 2021/07/24 04:15:39 by bccyv            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,13 +19,13 @@
 
 char *elf64_get_section_name(t_elf *elf, size_t index)
 {
-	size_t	secname_index;
+	size_t	secndx;
 
-	secname_index = elf->header.e_shstrndx;
-	return ((char *)(elf->scontent[secname_index] + elf->sheaders[index].sh_name));
+	secndx = elf->header.e_shstrndx;
+	return ((char *)(elf->scontent[secndx] + elf->sheaders[index].sh_name));
 }
 
-int elf64_encrypt_section(t_elf *elf, const char *sname, Cha20Key key)
+int elf64_encrypt_section(t_elf *elf, const char *sname, t_key key)
 {
 	for (size_t i = 0; i < elf->header.e_shnum; i++)
 	{
@@ -37,6 +37,16 @@ int elf64_encrypt_section(t_elf *elf, const char *sname, Cha20Key key)
 	}
 	printf("Error: section not found: '%s'\n", sname);
 	return (1);
+}
+
+bool elf64_is_already_packed(t_elf *elf)
+{
+	for (size_t i = 0; i < elf->header.e_shnum; i++)
+	{
+		if (strcmp(elf64_get_section_name(elf, i), ".woody") == 0)
+			return (1);
+	}
+	return (0);
 }
 
 long get_file_size(int fd)

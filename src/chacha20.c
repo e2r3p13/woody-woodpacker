@@ -6,7 +6,7 @@
 /*   By: bccyv <bccyv@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/21 06:25:00 by bccyv             #+#    #+#             */
-/*   Updated: 2021/07/24 01:51:48 by bccyv            ###   ########.fr       */
+/*   Updated: 2021/07/24 02:08:23 by bccyv            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,7 +52,7 @@ static void chacha_block(uint32_t matrix[16], uint32_t cypher[16])
 		cypher[i] += matrix[i];
 }
 
-int chacha20_keygen(Cha20Key key)
+int chacha20_keygen(t_key key)
 {
 	int urandfd;
 	int	rdret;
@@ -73,7 +73,7 @@ int chacha20_keygen(Cha20Key key)
 	return (0);
 }
 
-void chacha20_run(uint8_t *data, size_t offset, size_t size, Cha20Key key)
+void chacha20_run(uint8_t *data, size_t offset, size_t size, t_key key)
 {
 	uint32_t    cypher[16];
 	uint32_t    matrix[16] =

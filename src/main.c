@@ -6,7 +6,7 @@
 /*   By: bccyv <bccyv@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/22 15:40:55 by bccyv             #+#    #+#             */
-/*   Updated: 2021/07/24 01:44:53 by bccyv            ###   ########.fr       */
+/*   Updated: 2021/07/24 04:12:49 by bccyv            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@ uint8_t stub[] =
 int main(int ac, char **av)
 {
 	t_elf		*elf;
-	Cha20Key	key;
+	t_key		key;
 	char        out[] = "woody";
 
 	if (ac != 2)
@@ -35,7 +35,8 @@ int main(int ac, char **av)
 	if ((elf = elf64_read(av[1])) == NULL)
 		return (1);
 
-	if (chacha20_keygen(key) < 0 ||
+	if (elf64_is_already_packed(elf) ||
+		chacha20_keygen(key) < 0 ||
 		elf64_encrypt_section(elf, ".text", key) < 0 ||
 		elf64_inject(elf, stub, sizeof(stub)) < 0 ||
 		elf64_write(elf, out) < 0)
@@ -43,7 +44,7 @@ int main(int ac, char **av)
 		elf64_free(elf);
 		return (1);
 	}
-	
+
 	elf64_free(elf);
 	return (0);
 }

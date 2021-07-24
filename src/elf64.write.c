@@ -6,15 +6,22 @@
 /*   By: bccyv <bccyv@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/22 21:35:50 by bccyv             #+#    #+#             */
-/*   Updated: 2021/07/24 01:51:09 by bccyv            ###   ########.fr       */
+/*   Updated: 2021/07/24 04:07:24 by bccyv            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <elf.h>
 #include <fcntl.h>
-#include <woody.h>
 #include <unistd.h>
+#include <stdio.h>
+#include <woody.h>
 
+/*
+ *	padd writes 0 from the current offset in the file to the desired one.
+ *	If the padding has to be done in the middle of the file (inserting content),
+ *	it'll just move the offset with lseek (assuming the area is already zeroed)
+ *	Else, zeros will effectively be written.
+*/
 static int padd(int fd, size_t dst, size_t *off)
 {
 	long fsz;
@@ -91,6 +98,11 @@ static int write_sheaders(t_elf *elf, int fd, size_t *off)
 	return (0);
 }
 
+/*
+ *	elf64_write will write every part of the elf executable in @path.
+ *	It'll padd every part of it to make the offset correspond to the given
+ *	elf_t structure, thus writing a valid executalbe file.
+*/
 int	elf64_write(t_elf *elf, const char *path)
 {
 	int fd;
@@ -99,7 +111,10 @@ int	elf64_write(t_elf *elf, const char *path)
 
 	fd = open(path, O_WRONLY | O_CREAT, 0766);
 	if (fd < 0)
-	    return (-1);
+	{
+		printf("Error: Failed to open '%s'\n", path);
+		return (-1);
+	}
 
 	wsum += write_header(elf, fd, &off);
 	wsum += write_pheaders(elf, fd, &off);
@@ -107,5 +122,7 @@ int	elf64_write(t_elf *elf, const char *path)
 	wsum += write_sheaders(elf, fd, &off);
 
 	close(fd);
+	if (wsum < 0)
+		printf("Error: Some bytes has been lost while writing on '%s', try again\n", path);
 	return (wsum);
 }
