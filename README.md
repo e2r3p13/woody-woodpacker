@@ -40,3 +40,5 @@ Several methods can be used to inject the stub. Here's the one that I choosed:
 [Elf - Wikipedia](https://en.wikipedia.org/wiki/Executable_and_Linkable_Format)
 
 [Executable and Linkable Format](http://www.skyfree.org/linux/references/ELF_Format.pdf)
+
+[Executable packer](https://www.youtube.com/watch?v=5RK7sYTOeNk)
