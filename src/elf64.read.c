@@ -6,7 +6,7 @@
 /*   By: bccyv <bccyv@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/24 04:01:44 by bccyv             #+#    #+#             */
-/*   Updated: 2021/07/24 04:40:46 by bccyv            ###   ########.fr       */
+/*   Updated: 2021/07/24 04:54:08 by bccyv            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,6 +45,13 @@ void elf64_free(t_elf *elf)
     }
 }
 
+/*
+ *	To be packed, the given file must be:
+ *	- A valid ELF file
+ *	- 64 bit format
+ *	- executable
+ *	If an invalid file is processed, this function is guilty.
+*/
 static int read_header(t_elf *elf, char *fdata)
 {
     size_t hsize = sizeof(Elf64_Ehdr);
@@ -58,6 +65,16 @@ static int read_header(t_elf *elf, char *fdata)
     if (strncmp((char *)elf->header.e_ident, ELFMAG, SELFMAG) != 0)
 	{
 		printf("Error: Invalid ELF file\n");
+		return (-1);
+	}
+	if (elf->header.e_ident[EI_CLASS] != 2)
+	{
+		printf("Error: 32 bit ELF files are not supported\n");
+		return (-1);
+	}
+	if (elf->header.e_type != ET_EXEC)
+	{
+		printf("Error: Only executables are supported\n");
 		return (-1);
 	}
 
