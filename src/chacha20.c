@@ -73,6 +73,11 @@ int chacha20_keygen(t_key key)
 	return (0);
 }
 
+void chacha20_keyprint(t_key key)
+{
+	printf("chacha20 key:\n%x%x%x%x%x%x%x%x\n", key[0], key[1], key[2], key[3], key[4], key[5], key[6], key[7]);
+}
+
 void chacha20_run(uint8_t *data, size_t offset, size_t size, t_key key)
 {
 	uint32_t    cypher[16];

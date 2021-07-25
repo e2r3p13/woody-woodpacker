@@ -16,6 +16,12 @@
 #include <string.h>
 #include <chacha20.h>
 
+uint8_t jmp[] =
+{
+	0x68, 0xff, 0xff, 0xff, 0xff,
+	0xc3,
+};
+
 uint8_t stub[] =
 {
 	0x57,										// push   %rdi
@@ -55,15 +61,15 @@ uint8_t stub[] =
     0xc3,										// retq	
 };
 
-static void prepare_stub(uint64_t oep, uint64_t tsz, t_key key)
+static void prepare_stub(uint32_t oep, uint64_t tsz, t_key key)
 {
 	size_t	key_off = 0;
 	size_t	tsz_off = 0;
-	size_t	jmp_off = 0;
+	size_t	jmp_off = 1;
 
-	memcpy(stub + key_off, key, 16);
-	memcpy(stub + jmp_off, &oep, sizeof oep);
-	memcpy(stub + tsz_off, &tsz, sizeof tsz);
+	// memcpy(stub + key_off, key, 16);
+	memcpy(jmp + jmp_off, &oep, sizeof(uint32_t));
+	// memcpy(stub + tsz_off, &tsz, sizeof tsz);
 }
 
 int main(int ac, char **av)
@@ -80,13 +86,14 @@ int main(int ac, char **av)
 	}
 	if ((elf = elf64_read(av[1])) == NULL)
 		return (1);
-	if (elf64_is_already_packed(elf) || chacha20_keygen(key) < 0 || elf64_encrypt_section(elf, ".text", key) < 0)
+	if (elf64_is_already_packed(elf) || chacha20_keygen(key) < 0)// || elf64_encrypt_section(elf, ".text", key) < 0)
 	{
 		elf64_free(elf);
 		return (1);
 	}
+	chacha20_keyprint(key);
 	prepare_stub(elf->header.e_entry, tsz, key);
-	if (elf64_inject(elf, stub, sizeof(stub)) < 0 || elf64_write(elf, out) < 0)
+	if (elf64_inject(elf, jmp, sizeof(jmp)) < 0 || elf64_write(elf, out) < 0)
 	{
 		elf64_free(elf);
 		return (1);
