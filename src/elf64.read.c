@@ -195,7 +195,9 @@ t_elf *elf64_read(char *fpath)
 		read_scontent(elf, fdata) < 0)
     {
         elf64_free(elf);
+		free(fdata);
         return (NULL);
     }
+	free(fdata);
     return (elf);
 }
