@@ -28,7 +28,8 @@ SRCS	=	chacha20.c				\
 			# elf64.print.c			\
 
 CC		=	gcc
-CFLAGS	=	-Wall -Wextra -Werror # -g3 -fsanitize=address
+CFLAGS	=	#-Wall -Wextra -Werror
+DEBUG	=	-g3 -fsanitize=address
 
 OBJS	=	$(addprefix $(OBJDIR)/,$(SRCS:.c=.o))
 DPDCS	=	$(OBJS:.o=.d)

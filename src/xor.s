@@ -20,37 +20,49 @@
 	push r10
 	push r11
 	push r12
+	push r13
+	push r14
 
 .varinit:
 
-	mov r9, 0x42	; store oep (replaced when packed)
-	mov r10, r9;
-	mov r11, 0x42	; store text length (replaced when packed)
-	mov r12, 0		;
+	mov r9, 0x42	; oep
+	mov r10, r9;	; iterator
+	mov r11, 0x42	; text length
+	mov r12, 0		; counter
+	mov r13, 0x42	; base addr of the first page containing the .text section
+	mov r14, 0x42	; len of mrpotects calls
 
 .addrights:
 
-	mov rdi, r9		; addr of text section
-	mov rsi, 8192	; size of text section
-	mov rdx, 7		; PROT_WRITE
+	push r10
+	push r11
+	push r12
+
+	mov rdi, r13	;
+	mov rsi, r14	;
+	mov rdx, 7		; PROT_WRITE | PROT_READ | PROT_EXEC
 	mov rax, 10 	; sys_mprotect
 	syscall
 
-.decrypt:
+	pop r12
+	pop r11
+	pop r10
 
-	cmp r12, r11			; if r10 == r11 (meaning we iterated through every bytes of the text section)
-	je .removerights		; continue program execution
+.decrypt:
+	
 	mov bl, 0x2a
-	xor byte [r10], bl		; oep[r12] ^= 42	
+	cmp r12, r11	
+	je .removerights
+	xor byte [r10], bl
 	inc r12
 	inc r10
 	jmp .decrypt
 
 .removerights:
 
-	mov rdi, r9		; addr of text section
-	mov rsi, r11	; size of text section
-	mov rdx, 4		; PROT_EXEC
+	mov rdi, r13	;
+	mov rsi, r14	;
+	mov rdx, 5		; PROT_EXEC | PROT_READ 
 	mov rax, 10		; sys_mprotect
 	syscall
 
@@ -69,10 +81,12 @@
 
 .regrest:
 
+	pop r14
+	pop r13
 	pop r12
 	pop r11
 	pop r10
-	pop rax			; scratch register, to keep r9 to return
+	pop rax
 	pop rax
 	pop rdx
 	pop rsi
@@ -80,5 +94,5 @@
 
 .return:
 
-	push r9			; address of OEP
+	push r9		; jmp to oep (r9 is a scratch register)
 	ret
