@@ -25,6 +25,7 @@ SRCS	=	chacha20.c				\
 			elf64.utils.c			\
 			elf64.write.c			\
 			main.c					\
+			stub.c					\
 			# elf64.print.c			\
 
 CC		=	gcc

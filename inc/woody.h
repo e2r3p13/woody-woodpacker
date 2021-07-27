@@ -24,7 +24,7 @@ typedef struct
 
 t_elf   *elf64_read(char *fpath);
 bool	elf64_is_already_packed(t_elf *elf);
-int		elf64_encrypt_section(t_elf *elf, const char *sname, t_key key);
+int		elf64_encrypt_section(t_elf *elf, const char *sname, t_key key, uint32_t *txtsecsz);
 int		elf64_inject(t_elf *elf, uint8_t *loader, size_t lsize);
 int		elf64_write(t_elf *elf, const char *path);
 void    elf64_free(t_elf *elf);

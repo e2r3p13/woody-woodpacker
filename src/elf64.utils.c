@@ -25,13 +25,14 @@ char *elf64_get_section_name(t_elf *elf, size_t index)
 	return ((char *)(elf->scontent[secndx] + elf->sheaders[index].sh_name));
 }
 
-int elf64_encrypt_section(t_elf *elf, const char *sname, t_key key)
+int elf64_encrypt_section(t_elf *elf, const char *sname, t_key key, uint32_t *txtsecsz)
 {
 	for (size_t i = 0; i < elf->header.e_shnum; i++)
 	{
 		if (strcmp(sname, elf64_get_section_name(elf, i)) == 0)
 		{
-			chacha20_run(elf->scontent[i], 0, elf->sheaders[i].sh_size, key);
+			*txtsecsz = elf->sheaders[i].sh_size;
+			chacha20_run(elf->scontent[i], 0, *txtsecsz, key);
 			return (0);
 		}
 	}
