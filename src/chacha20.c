@@ -17,18 +17,18 @@
 #include <fcntl.h>
 #include <chacha20.h>
 
-#define ROTL(a, b)							\
-(											\
-	((a) << (b)) | ((a) >> (32 - (b)))		\
-)
+#define ROTL(a, b)						\
+({										\
+	((a) << (b)) | ((a) >> (32 - (b)));	\
+})
 
-#define QR(a, b, c, d)						\
-(											\
-	a += b, d ^= a, ROTL(d, 16),			\
-	c += d, b ^= c, ROTL(b, 12),			\
-	a += b, d ^= a, ROTL(d,  8),			\
-	c += d, b ^= c, ROTL(b,  7)				\
-)
+#define QR(a, b, c, d)					\
+do {									\
+	a += b; d ^= a; ROTL(d, 16);		\
+	c += d; b ^= c; ROTL(b, 12);		\
+	a += b; d ^= a; ROTL(d,  8);		\
+	c += d; b ^= c; ROTL(b,  7);		\
+} while (0)								\
 
 static void chacha_block(uint32_t matrix[16], uint32_t cypher[16])
 {
