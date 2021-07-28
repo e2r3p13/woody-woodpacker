@@ -95,13 +95,13 @@ stub:
 chacha20_decrypt:
 
 .init:
-	pushx r8, r9, r10, r11, rdx
+	pushx r8, r9, r10, r11, rdx, rcx, rbx
 
-	mov r8,	0		; iterator through text bytes
-	mov r9, rsi		; iterator through text length
+	mov r8,	rdi		; iterator through text bytes
+	mov r9, 0		; iterator through text length
 
 .run:
-	cmp r9, rdi		; if r9 == length
+	cmp r9, rsi		; if r9 == length
 	je .fini		;
 	call mod64		; if r9 % 64
 	cmp rax, 0		; == 0;
@@ -109,21 +109,21 @@ chacha20_decrypt:
 
 .mat_copy:
 
-	mov r10b, byte mat
-	mov r11b, byte cpy
+	mov r10, mat
+	mov r11, cpy
 	mov rdx, 0
 	.cpystart:
-	cmp rdx, 32
+	cmp rdx, 64
 	je .cpyend
-	mov [r11], r10
+	mov r11, [r10]
 	inc r10
 	inc r11
 	inc rdx
 	.cpyend:
-	mov rdx, 10
+	mov rcx, 10
 
 .block:
-	cmp rdx, 0		; iterates 10 times
+	cmp rcx, 0		; iterates 10 times
 	je .mat_add
 	
 	qr cpy, 0, 4, 8, 12
@@ -135,37 +135,39 @@ chacha20_decrypt:
 	qr cpy, 2, 7, 8, 13
 	qr cpy, 3, 4, 9, 14
 
-	dec rdx
+	dec rcx
 	jmp .block
 
 .mat_add:
-	mov r10b, byte mat
-	mov r11b, byte cpy
+	mov r10, mat
+	mov r11, cpy
 	mov rdx, 0
 	.addstart:
-	cmp rdx, 32
+	cmp rdx, 64
 	je .xor
-	add [r10], r11
+	mov rax, [r11]
+	add [r10], rax
 	inc r10
 	inc r11
 	inc rdx
 
 .xor:
-	mov bl, [mat + rax] ; risky
+	call mod64
+	mov bl, byte [mat + rax] ; risky
 	xor [r8], bl
 	inc r8
 	inc r9
 	jmp .run
 
 .fini:
-	pushx r8, r9, r10, r11, rdx
+	pushx r8, r9, r10, r11, rdx, rcx, rbx
 	ret
 
 mod64:
 	push r9
 .ope:
 	cmp r9, 64
-	jle .ret
+	jl .ret
 	sub r9, 64
 	jmp .ope
 .ret:
@@ -180,8 +182,8 @@ mod64:
 	woody db "WOODY"
 	
 	mat dd	0x61707865, 0x3320646e, 0x79622d32, 0x6b206574, \
-			0x00000042, 0x00000000, 0x00000000, 0x00000000, \
 			0x00000000, 0x00000000, 0x00000000, 0x00000000, \
+			0x00000000, 0x00000000, 0x00000000, 0x00000042, \
 			0x00000000, 0x00000000, 0x00000042, 0x00000042
 
 	cpy dd	0, 0, 0,0 , \
