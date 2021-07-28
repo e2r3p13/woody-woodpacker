@@ -29,8 +29,8 @@ SRCS	=	chacha20.c				\
 			# elf64.print.c			\
 
 CC		=	gcc
-CFLAGS	=	#-Wall -Wextra -Werror
-DEBUG	=	-g3 -fsanitize=address
+CFLAGS	=	-Wall -Wextra -Werror
+DEBUG	=	#-g3 -fsanitize=address
 
 OBJS	=	$(addprefix $(OBJDIR)/,$(SRCS:.c=.o))
 DPDCS	=	$(OBJS:.o=.d)
@@ -44,14 +44,14 @@ DPDCTT	=	$(shell ls $(OBJDIR)/*.d)
 all: $(NAME)
 
 $(NAME): $(OBJS)
-	@$(CC) $(CFLAGS) $(OBJS) -o $(NAME)
+	@$(CC) $(CFLAGS) $(DEBUG) $(OBJS) -o $(NAME)
 	@printf "[\e[32mOK\e[0m] %s\n" $@
 
 -include $(DPDCS)
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c
 	@mkdir -p $(OBJDIR)
-	@$(CC) $(CFLAGS) -MMD -I $(INCDIR) -c $< -o $@
+	@$(CC) $(CFLAGS) $(DEBUG) -MMD -I $(INCDIR) -c $< -o $@
 	@printf "[\e[32mCC\e[0m] %s\n" $@
 
 clean: _clean
