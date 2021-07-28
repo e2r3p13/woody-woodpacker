@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <woody.h>
 #include <string.h>
+#include <stdlib.h>
 #include <chacha20.h>
 
 extern uint8_t	stub[];
@@ -24,44 +25,30 @@ extern uint32_t	stub_len;
  *	Assumes that every hardcoded values are 0x42 and every other bytes are
  *	different.
  *	Also assumes that hardcoded values are always in this order:
- *	oep / text section size / page base address / page offset/ chacha key
+ *	oep / text section size / page base address / page offset / chacha key
 */
 static void prepare_stub(uint32_t oep, uint32_t txtsecsz, t_key key)
 {
-	int			offsets[5];
+	int			offsets[5] = {0};
 	uint32_t	basepageaddr = oep - (oep % 4096);
 	uint32_t	pageoff = txtsecsz + (oep - basepageaddr);
 		
-	for (int i = 0, j = 0; j < txtsecsz && i < 5; j++)
+	for (uint32_t i = 0, j = 0; j < stub_len && i < 5; j++)
 	{
 		if (stub[j] == 0x42)
 			offsets[i++] = j;
+	}
+	if (offsets[4] == 0)
+	{
+		printf("Error: Missing values to replace in the shellcode\n");
+		exit(1);
 	}
 
 	memcpy(stub + offsets[0], &oep, sizeof(uint32_t));
 	memcpy(stub + offsets[1], &txtsecsz, sizeof(uint32_t));
 	memcpy(stub + offsets[2], &basepageaddr, sizeof(uint32_t));
 	memcpy(stub + offsets[3], &pageoff, sizeof(uint32_t));
-}
-
-static int xor_encrypt(t_elf *elf, uint32_t *tsz)
-{
-	uint8_t	*txt;
-
-	for (size_t i = 0; i < elf->header.e_shnum; i++)
-	{
-		if (strcmp(elf64_get_section_name(elf, i), ".text") == 0)
-		{
-			txt = (uint8_t *)elf->scontent[i];
-			*tsz = elf->sheaders[i].sh_size;
-			printf("text size: 0x%x\n", *tsz);
-			for (uint32_t j = 0; j < *tsz; j++)
-				txt[j] ^= 0x2a;
-			
-			return (0);
-		}
-	}
-	return (-1);
+	memcpy(stub + offsets[4] - 4, key, 8 * sizeof(uint32_t));
 }
 
 int main(int ac, char **av)
@@ -70,7 +57,7 @@ int main(int ac, char **av)
 	t_key		key;
 	char        out[] = "woody";
 	uint32_t	txtsecsz;
-
+	
 	if (ac != 2)
 	{
 		printf("Usage: %s <t_elf executable>\n", av[0]);
