@@ -17,17 +17,17 @@
 #include <fcntl.h>
 #include <chacha20.h>
 
-#define ROTL(a,b)							\
+#define ROTL(a, b)							\
 (											\
 	((a) << (b)) | ((a) >> (32 - (b)))		\
 )
 
 #define QR(a, b, c, d)						\
 (											\
-	b ^= ROTL(a + d, 7),					\
-	c ^= ROTL(b + a, 9),					\
-	d ^= ROTL(c + b,13),					\
-	a ^= ROTL(d + c,18)						\
+	a += b, d ^= a, ROTL(d, 16),			\
+	c += d, b ^= c, ROTL(b, 12),			\
+	a += b, d ^= a, ROTL(d,  8),			\
+	c += d, b ^= c, ROTL(b,  7)				\
 )
 
 static void chacha_block(uint32_t matrix[16], uint32_t cypher[16])
@@ -38,14 +38,14 @@ static void chacha_block(uint32_t matrix[16], uint32_t cypher[16])
 	for (int i = 0; i < 10; i++)
 	{
 		QR(cypher[ 0], cypher[ 4], cypher[ 8], cypher[12]);
-		QR(cypher[ 5], cypher[ 9], cypher[13], cypher[ 1]);
-		QR(cypher[10], cypher[14], cypher[ 2], cypher[ 6]);
-		QR(cypher[15], cypher[ 3], cypher[ 7], cypher[11]);
+		QR(cypher[ 1], cypher[ 5], cypher[ 9], cypher[13]);
+		QR(cypher[ 2], cypher[ 6], cypher[10], cypher[14]);
+		QR(cypher[ 3], cypher[ 7], cypher[11], cypher[15]);
 
-		QR(cypher[ 0], cypher[ 1], cypher[ 2], cypher[ 3]);
-		QR(cypher[ 5], cypher[ 6], cypher[ 7], cypher[ 4]);
-		QR(cypher[10], cypher[11], cypher[ 8], cypher[ 9]);
-		QR(cypher[15], cypher[12], cypher[13], cypher[14]);
+		QR(cypher[ 0], cypher[ 5], cypher[10], cypher[ 3]);
+		QR(cypher[ 1], cypher[ 6], cypher[11], cypher[ 4]);
+		QR(cypher[ 2], cypher[ 7], cypher[ 8], cypher[ 9]);
+		QR(cypher[ 3], cypher[ 4], cypher[ 9], cypher[14]);
 	}
 
 	for (int i = 0; i < 16; i++)
