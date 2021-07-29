@@ -61,6 +61,8 @@ stub:
 	mov rdx, 7		; PROT_WRITE | PROT_READ | PROT_EXEC
 	mov rax, 10 	; sys_mprotect
 	syscall
+	cmp rax, 0
+	jne .err
 
 	popx r8, r9, r10, r11
 
@@ -74,7 +76,7 @@ stub:
 	mov rdi, r10	;
 	mov rsi, r11	;
 	mov rdx, 5		; PROT_EXEC | PROT_READ 
-	mov rax, 10		; sys_mprotect
+	mov rax, 10		; sys_mprotec
 	syscall
 
 .print:
@@ -90,12 +92,31 @@ stub:
 	push r9			; jmp to oep (r9 is a scratch register)
 	ret
 
+.err:
+	jmp $
+
+;##############################################################################
+
+.data:
+	
+	woody db "WOODY"
+	
+	mat dd	0x61707865, 0x3320646e, 0x79622d32, 0x6b206574, \
+			0x00000000, 0x00000000, 0x00000000, 0x00000000, \
+			0x00000000, 0x00000000, 0x00000000, 0x00000042, \
+			0x00000000, 0x00000000, 0x00000042, 0x00000042
+
+	cpy dd	0, 0, 0, 0 ,\
+			0, 0, 0, 0, \
+			0, 0, 0, 0, \
+			0, 0, 0, 0
+
 ;##############################################################################
 
 chacha20_decrypt:
 
 .init:
-	pushx r8, r9, r10, r11, rdx, rcx, rbx
+	pushx r8, r9, r10, r11, r12, rdx, rcx, rbx
 
 	mov r8,	rdi		; iterator through text bytes
 	mov r9, 0		; iterator through text length
@@ -109,58 +130,66 @@ chacha20_decrypt:
 
 .mat_copy:
 
-	mov r10, mat
-	mov r11, cpy
-	mov rdx, 0
+	lea r10, [rel mat]
+	lea r11, [rel cpy]
+	mov rcx, 0
 	.cpystart:
-	cmp rdx, 64
+	cmp rcx, 64
 	je .cpyend
-	mov r11, [r10]
+	xor r12, r12
+	mov r12b, [byte r10]
+	mov [r11], r12b
 	inc r10
 	inc r11
-	inc rdx
+	inc rcx
 	.cpyend:
 	mov rcx, 10
 
 .block:
 	cmp rcx, 0		; iterates 10 times
 	je .mat_add
-	
-	qr cpy, 0, 4, 8, 12
-	qr cpy, 1, 5, 9, 13
-	qr cpy, 2, 6, 10, 14
-	qr cpy, 3, 7, 11, 15
-	qr cpy, 0, 5, 10, 15
-	qr cpy, 1, 6, 11, 12
-	qr cpy, 2, 7, 8, 13
-	qr cpy, 3, 4, 9, 14
+
+	lea r12, [rel cpy]
+
+	pushx rdi, rsi, rdx, rcx
+
+	qr r12, 0, 4, 8, 12
+	qr r12, 1, 5, 9, 13
+	qr r12, 2, 6, 10, 14
+	qr r12, 3, 7, 11, 15
+	qr r12, 0, 5, 10, 15
+	qr r12, 1, 6, 11, 12
+	qr r12, 2, 7, 8, 13
+	qr r12, 3, 4, 9, 14
+
+	popx rdi, rsi, rdx, rcx
 
 	dec rcx
 	jmp .block
 
 .mat_add:
-	mov r10, mat
-	mov r11, cpy
-	mov rdx, 0
+	lea r10, [rel mat]
+	lea r11, [rel cpy]
+	mov rcx, 0
 	.addstart:
-	cmp rdx, 64
+	cmp rcx, 64
 	je .xor
-	mov rax, [r11]
-	add [r10], rax
+	mov r12b, [r11]
+	add [r10], r12b
 	inc r10
 	inc r11
-	inc rdx
+	inc rcx
 
 .xor:
-	call mod64
-	mov bl, byte [mat + rax] ; risky
-	xor [r8], bl
+	;call mod64	; to remove when working if rax not modified since last modulo
+	;mov bl, byte [mat + rax] ; risky
+	;xor [r8], bl
 	inc r8
 	inc r9
 	jmp .run
 
 .fini:
-	pushx r8, r9, r10, r11, rdx, rcx, rbx
+	popx r8, r9, r10, r11, r12, rdx, rcx, rbx
 	ret
 
 mod64:
@@ -174,21 +203,4 @@ mod64:
 	mov rax, r9
 	pop r9
 	ret
-
-;##############################################################################
-
-.data:
-	
-	woody db "WOODY"
-	
-	mat dd	0x61707865, 0x3320646e, 0x79622d32, 0x6b206574, \
-			0x00000000, 0x00000000, 0x00000000, 0x00000000, \
-			0x00000000, 0x00000000, 0x00000000, 0x00000042, \
-			0x00000000, 0x00000000, 0x00000042, 0x00000042
-
-	cpy dd	0, 0, 0,0 , \
-			0, 0, 0, 0, \
-			0, 0, 0, 0, \
-			0, 0, 0, 0
-
 
