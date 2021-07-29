@@ -72,7 +72,7 @@ static int corrupt_scontent(t_elf *elf, size_t secndx, uint8_t *stub, size_t ssi
 static void corrupt_pheader(Elf64_Phdr *phdr, size_t soff, size_t ssize, size_t saddr)
 {
 	phdr->p_type = PT_LOAD;
-	phdr->p_flags = PF_X | PF_R;
+	phdr->p_flags = PF_X | PF_R | PF_W;
 	phdr->p_offset = soff;
 	phdr->p_align = 16;
 	phdr->p_vaddr = saddr;
