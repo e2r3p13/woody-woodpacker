@@ -10,6 +10,8 @@
 ;                                                                              ;
 ; **************************************************************************** ;
 
+bits 64
+
 %macro pushx 1-*
  %rep %0
    push %1
@@ -61,8 +63,6 @@ stub:
 	mov rdx, 7		; PROT_WRITE | PROT_READ | PROT_EXEC
 	mov rax, 10 	; sys_mprotect
 	syscall
-	cmp rax, 0
-	jne .err
 
 	popx r8, r9, r10, r11
 
@@ -92,9 +92,6 @@ stub:
 	push r9			; jmp to oep (r9 is a scratch register)
 	ret
 
-.err:
-	jmp $
-
 ;##############################################################################
 
 .data:
@@ -102,8 +99,8 @@ stub:
 	woody db "WOODY"
 	
 	mat dd	0x61707865, 0x3320646e, 0x79622d32, 0x6b206574, \
+			0x00000042, 0x00000000, 0x00000000, 0x00000000, \
 			0x00000000, 0x00000000, 0x00000000, 0x00000000, \
-			0x00000000, 0x00000000, 0x00000000, 0x00000042, \
 			0x00000000, 0x00000000, 0x00000042, 0x00000042
 
 	cpy dd	0, 0, 0, 0 ,\
@@ -181,9 +178,9 @@ chacha20_decrypt:
 	inc rcx
 
 .xor:
-	;call mod64	; to remove when working if rax not modified since last modulo
-	;mov bl, byte [mat + rax] ; risky
-	;xor [r8], bl
+	call mod64	; to remove when working if rax not modified since last modulo
+	mov bl, byte [mat + rax] ; risky
+	xor [r8], bl
 	inc r8
 	inc r9
 	jmp .run
@@ -199,6 +196,7 @@ mod64:
 	jl .ret
 	sub r9, 64
 	jmp .ope
+
 .ret:
 	mov rax, r9
 	pop r9
