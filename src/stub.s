@@ -29,22 +29,6 @@ extern errno
   %endrep
 %endmacro
 
-%macro qrop 4
-	add %1, %2
-	xor %3, %1
-	rol %3, %4
-%endmacro
-
-%macro qr 5
-	mov rdi, [%1 + %2]
-	mov rsi, [%1 + %3]
-	mov rdx, [%1 + %4]
-	mov rcx, [%1 + %5]
-	qrop rdi, rsi, rcx, 16
-	qrop rdx, rcx, rsi, 12
-	qrop rdi, rsi, rcx, 8
-	qrop rdx, rcx, rsi, 7
-%endmacro
 
 ;##############################################################################
 
@@ -79,7 +63,7 @@ stub:
 	mov rdi, r8		; oep
 	mov rsi, r9		; len
 
-	call chacha20_decrypt
+	call chacha20_run
 	
 .removerights:
 	mov rdi, r10	;
@@ -105,45 +89,84 @@ stub:
 
 .data:
 	
-	mat dd	0x61707865, 0x3320646e, 0x79622d32, 0x6b206574, \
-			0x00000042, 0x00000000, 0x00000000, 0x00000000, \
-			0x00000000, 0x00000000, 0x00000000, 0x00000000, \
-			0x00000000, 0x00000000, 0x00000042, 0x00000042
-
-	cpy dd	0, 0, 0, 0, \
-			0, 0, 0, 0, \
-			0, 0, 0, 0, \
-			0, 0, 0, 0
+	model dd	0x61707865, 0x3320646e, 0x79622d32, 0x6b206574, \
+				0x00000042, 0x00000000, 0x00000000, 0x00000000, \
+				0x00000000, 0x00000000, 0x00000000, 0x00000000, \
+				0x00000000, 0x00000000, 0x4a000000, 0x00000000
+	
+	state dd	0, 0, 0, 0, \
+				0, 0, 0, 0, \
+				0, 0, 0, 0, \
+				0, 0, 0, 0
 
 ;##############################################################################
 
-chacha20_decrypt:
+chacha20_run:
 
 .init:
-	pushx r8, r9, r10, r11, r12, rdx, rcx, rbx
+	pushx r8, r9, r10, r12, rdi, rbx
 
-	mov r8,	rdi		; iterator through text bytes
-	mov r9, 0		; iterator through text length
+	mov r8,	rdi				; iterator through text bytes
+	mov r9, 0				; iterator through text length
+	mov r10, 0				; counter
 
 .run:
-	cmp r9, rsi		; if r9 == length
-	je .fini		;
-	call mod64		; if r9 % 64
-	cmp rax, 0		; == 0;
-	jne .xor		;
+	cmp r9, rsi				; if r9 == length
+	je .fini				;
+	mov rdi, r9				;
+	call mod64				; if r9 % 64 == 0
+	cmp rax, 0				;
+	jne .xor				;
+	
+	mov rdi, r10
+	call chacha20_block
 
-.inc_mat_counter:
-	lea r12, [rel mat]
-	inc dword [r12 + 52]
+.xor:
+	lea r12, [rel state]	; r11 = stream
+	mov bl, [r12 + rax]		; bl = stream[r9 % 64] (rax still holds r9 % 64)
+	xor [r8], bl			; *r8 ^= bl
+	inc r8					; r8++
+	inc r9					; r9++
+	jmp .run
 
-.mat_copy:
+.fini:
+	popx r8, r9, r10, r12, rdi, rbx
+	ret
 
-	lea r10, [rel mat]
-	lea r11, [rel cpy]
-	mov rcx, 0
+;##############################################################################
+
+%macro qrop 4
+	add %1, %2
+	xor %3, %1
+	rol %3, %4
+%endmacro
+
+%macro qr 5
+	mov rdi, [%1 + %2]
+	mov rsi, [%1 + %3]
+	mov rdx, [%1 + %4]
+	mov rcx, [%1 + %5]
+	qrop rdi, rsi, rcx, 16
+	qrop rdx, rcx, rsi, 12
+	qrop rdi, rsi, rcx, 8
+	qrop rdx, rcx, rsi, 7
+%endmacro
+
+chacha20_block:
+
+.init:
+	pushx r10, r11, r12, rdi, rsi, rdx, rcx, 
+
+.inc_model_counter:
+	lea r10, [rel model]
+	inc dword [r10 + 48]
+
+.state_init:
+	lea r11, [rel state]
+	xor rcx, rcx
 	.cpystart:
 	cmp rcx, 64
-	je .cpyend
+	je .block_init
 	xor r12, r12
 	mov r12b, [byte r10]
 	mov [r11], r12b
@@ -151,18 +174,18 @@ chacha20_decrypt:
 	inc r11
 	inc rcx
 	jmp .cpystart
-	.cpyend:
+
+.block_init:
 	mov rcx, 10
 
 .block:
 
-	cmp rcx, 0		; iterates 10 times
-	je .mat_add
+	cmp rcx, 0
+	je .state_add
 
-	lea r12, [rel cpy]
+	lea r12, [rel state]
 
 	pushx rdi, rsi, rdx, rcx
-
 	qr r12, 0, 4, 8, 12
 	qr r12, 1, 5, 9, 13
 	qr r12, 2, 6, 10, 14
@@ -171,49 +194,39 @@ chacha20_decrypt:
 	qr r12, 1, 6, 11, 12
 	qr r12, 2, 7, 8, 13
 	qr r12, 3, 4, 9, 14
-
 	popx rdi, rsi, rdx, rcx
 
 	dec rcx
 	jmp .block
 
-.mat_add:
-	lea r10, [rel mat]
-	lea r11, [rel cpy]
-	mov rcx, 0
+.state_add:
+	lea r10, [rel model]
+	lea r11, [rel state]
+	xor rcx, rcx
 	.addstart:
 	cmp rcx, 64
-	je .xor
-	mov r12b, [r11]
-	add [r10], r12b
+	je .fini
+	mov r12b, [r10]
+	add [r11], r12b
 	inc r10
 	inc r11
 	inc rcx
 	jmp .addstart
 
-.xor:
-	call mod64	; to remove when working if rax not modified since last modulo
-	lea r12, [rel cpy]
-	mov bl, [r12 + rax] ; risky
-	xor [r8], bl
-	inc r8
-	inc r9
-	jmp .run
-
 .fini:
-	popx r8, r9, r10, r11, r12, rdx, rcx, rbx
+	popx r10, r11, r12, rdi, rsi, rdx, rcx
 	ret
 
+;##############################################################################
+
 mod64:
-	push r9
-.ope:
-	cmp r9, 64
+.mod:
+	cmp rdi, 64
 	jl .ret
-	sub r9, 64
-	jmp .ope
+	sub rdi, 64
+	jmp .mod
 
 .ret:
-	mov rax, r9
-	pop r9
+	mov rax, rdi
 	ret
 
