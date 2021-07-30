@@ -44,6 +44,12 @@ static void prepare_stub(uint32_t oep, uint32_t txtsecsz, t_key key)
 		exit(1);
 	}
 
+	for (int i = 0; i < 8; i++)
+		key[i] = ((key[i]>>24)&0xff) | // move byte 3 to byte 0
+                    ((key[i]<<8)&0xff0000) | // move byte 1 to byte 2
+                    ((key[i]>>8)&0xff00) | // move byte 2 to byte 1
+                    ((key[i]<<24)&0xff000000);
+
 	memcpy(stub + offsets[0], &oep, sizeof(uint32_t));
 	memcpy(stub + offsets[1], &txtsecsz, sizeof(uint32_t));
 	memcpy(stub + offsets[2], &basepageaddr, sizeof(uint32_t));
