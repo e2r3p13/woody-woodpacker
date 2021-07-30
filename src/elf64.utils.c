@@ -32,7 +32,7 @@ int elf64_encrypt_section(t_elf *elf, const char *sname, t_key key, uint32_t *tx
 		if (strcmp(sname, elf64_get_section_name(elf, i)) == 0)
 		{
 			*txtsecsz = elf->sheaders[i].sh_size;
-			chacha20_run(elf->scontent[i], 0, *txtsecsz, key);
+			chacha20_run(elf->scontent[i], *txtsecsz, key);
 			return (0);
 		}
 	}
