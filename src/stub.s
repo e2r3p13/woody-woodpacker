@@ -12,6 +12,9 @@
 
 bits 64
 
+global stub
+extern errno
+
 %macro pushx 1-*
  %rep %0
    push %1
@@ -42,6 +45,12 @@ bits 64
 	qrop rdi, rsi, rcx, 8
 	qrop rdx, rcx, rsi, 7
 %endmacro
+
+;##############################################################################
+
+.data:
+
+	woody db "WOODY", 0xa
 
 ;##############################################################################
 
@@ -80,30 +89,28 @@ stub:
 	syscall
 
 .print:
-	mov rdi, 1		; stdout
-	mov rsi, woody	;
-	mov rdx, 5		; len
-	mov rax, 4		; write
-	syscall			;
+	mov rdi, 1				; stdout
+	lea rsi, [rel woody]	;
+	mov rdx, 6				; len
+	mov rax, 1				; write
+	syscall					;
 
 .fini:
-	popx rdi, rsi, rdx, rax, r8, rax, r10, r11
+	popx rdi, rsi, rdx, rax, rax, r9, r10, r11
 
-	push r9			; jmp to oep (r9 is a scratch register)
+	push r8			; jmp to oep (r8 is a scratch register)
 	ret
 
 ;##############################################################################
 
 .data:
 	
-	woody db "WOODY"
-	
 	mat dd	0x61707865, 0x3320646e, 0x79622d32, 0x6b206574, \
 			0x00000042, 0x00000000, 0x00000000, 0x00000000, \
 			0x00000000, 0x00000000, 0x00000000, 0x00000000, \
 			0x00000000, 0x00000000, 0x00000042, 0x00000042
 
-	cpy dd	0, 0, 0, 0 ,\
+	cpy dd	0, 0, 0, 0, \
 			0, 0, 0, 0, \
 			0, 0, 0, 0, \
 			0, 0, 0, 0
@@ -125,6 +132,10 @@ chacha20_decrypt:
 	cmp rax, 0		; == 0;
 	jne .xor		;
 
+.inc_mat_counter:
+	lea r12, [rel mat]
+	inc dword [r12 + 52]
+
 .mat_copy:
 
 	lea r10, [rel mat]
@@ -139,10 +150,12 @@ chacha20_decrypt:
 	inc r10
 	inc r11
 	inc rcx
+	jmp .cpystart
 	.cpyend:
 	mov rcx, 10
 
 .block:
+
 	cmp rcx, 0		; iterates 10 times
 	je .mat_add
 
@@ -176,10 +189,12 @@ chacha20_decrypt:
 	inc r10
 	inc r11
 	inc rcx
+	jmp .addstart
 
 .xor:
 	call mod64	; to remove when working if rax not modified since last modulo
-	mov bl, byte [mat + rax] ; risky
+	lea r12, [rel cpy]
+	mov bl, [r12 + rax] ; risky
 	xor [r8], bl
 	inc r8
 	inc r9
