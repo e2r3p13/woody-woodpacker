@@ -10,12 +10,14 @@
 #                                                                              #
 # **************************************************************************** #
 
-# nasm -f bin stub.s -o /dev/stdout > tmp && xxd -i tmp stub.c
+.NOTPARALLEL:
 
 # ****************
 #	Variables:
 
 NAME	=	woody_woodpacker
+PACKED	=	woody
+STUB	=	stub
 
 SRCDIR	=	src
 INCDIR	=	inc
@@ -27,8 +29,8 @@ SRCS	=	chacha20.c				\
 			elf64.utils.c			\
 			elf64.write.c			\
 			main.c					\
-			stub.c					\
-			# elf64.print.c			\
+			$(STUB).c				\
+			elf64.print.c			\
 
 CC		=	gcc
 CFLAGS	=	-Wall -Wextra -Werror
@@ -56,21 +58,33 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.c
 	@$(CC) $(CFLAGS) $(DEBUG) -MMD -I $(INCDIR) -c $< -o $@
 	@printf "[\e[32mCC\e[0m] %s\n" $@
 
+$(SRCDIR)/$(STUB).c: $(SRCDIR)/$(STUB).s
+	@nasm -f bin -o .$(STUB) $(SRCDIR)/$(STUB).s
+	@xxd -i .$(STUB) $(SRCDIR)/$(STUB).c
+	@rm -f .$(STUB)
+	@sed -i 's/_stub/stub/g' $(SRCDIR)/$(STUB).c
+
 clean: _clean
 
 fclean: _clean
-ifeq ($(shell ls -1 | grep $(NAME)),$(NAME))
-	@rm -rf $(NAME)
-	@rm -rf woody
-	@printf "[\e[31mCLEAN\e[0m] %s\n" woody
+ifeq ($(shell ls -1 | grep -w $(PACKED)), $(PACKED))
+	@rm -f $(PACKED)
+	@printf "[\e[31mCLEAN\e[0m] %s\n" $(PACKED)
+endif
+ifeq ($(shell ls -1 | grep -w $(NAME)), $(NAME))
+	@rm -f $(NAME)
 	@printf "[\e[31mCLEAN\e[0m] %s\n" $(NAME)
 endif
 
 _clean:
-ifeq ($(shell ls -1 | grep $(OBJDIR)),$(OBJDIR))
+ifeq ($(shell ls -1 | grep -w $(OBJDIR)), $(OBJDIR))
 	@rm -rf $(OBJCTT) $(DPDCTT)
 	@printf "[\e[31mCLEAN\e[0m] %s\n" $(OBJCTT)
 	@rm -rf $(OBJDIR)
+endif
+ifeq ($(shell ls -1 $(SRCDIR) | grep -w $(STUB).c), $(STUB).c)	
+	@rm -f $(SRCDIR)/$(STUB).c
+	@printf "[\e[31mCLEAN\e[0m] %s\n" $(SRCDIR)/$(STUB).c
 endif
 
 re: fclean all
