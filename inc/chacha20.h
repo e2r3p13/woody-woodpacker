@@ -25,7 +25,7 @@ typedef uint32_t t_key[8];
  *	Here comes the 1 Million dollar naming dilemma.
  *	You can send your ideas at bccyv@protonmail.com
 */
-void	chacha20_run(uint8_t *data, size_t offset, size_t size, t_key key);
+void	chacha20_run(uint8_t *data, size_t len, t_key key);
 
 int		chacha20_keygen(t_key key);
 void	chacha20_keyprint(t_key key);
