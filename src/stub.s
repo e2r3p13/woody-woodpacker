@@ -136,26 +136,28 @@ chacha20_run:
 ;##############################################################################
 
 %macro qrop 4
-	add %1, %2
-	xor %3, %1
-	rol %3, %4
+	mov r10d, dword [%2]
+	add [%1],r10d
+	mov r9d, dword [%1]
+	xor [%3], r9d
+	rol dword [%3], %4
 %endmacro
 
 %macro qr 5
-	mov rdi, [%1 + %2]
-	mov rsi, [%1 + %3]
-	mov rdx, [%1 + %4]
-	mov rcx, [%1 + %5]
-	qrop rdi, rsi, rcx, 16
-	qrop rdx, rcx, rsi, 12
-	qrop rdi, rsi, rcx, 8
-	qrop rdx, rcx, rsi, 7
+	lea rdi, [%1 + %2 * 4]	;rdi = a
+	lea rsi, [%1 + %3 * 4]	;rsi = b
+	lea rdx, [%1 + %4 * 4]	;rdx = c
+	lea rcx, [%1 + %5 * 4]	;rcx = d
+	qrop rdi, rsi, rcx, 16	; a, b, d, 16
+	qrop rdx, rcx, rsi, 12	; c, d, b, 12
+	qrop rdi, rsi, rcx, 8	; a, b, d, 8
+	qrop rdx, rcx, rsi, 7	; c, d, b, 7
 %endmacro
 
 chacha20_block:
 
 .init:
-	pushx r10, r11, r12, rdi, rsi, rdx, rcx, 
+	pushx r9, r10, r11, r12, rdi, rsi, rdx, rcx, 
 
 .inc_model_counter:
 	lea r10, [rel model]
@@ -214,19 +216,14 @@ chacha20_block:
 	jmp .addstart
 
 .fini:
-	popx r10, r11, r12, rdi, rsi, rdx, rcx
+	popx r9, r10, r11, r12, rdi, rsi, rdx, rcx
 	ret
 
 ;##############################################################################
 
 mod64:
 .mod:
-	cmp rdi, 64
-	jl .ret
-	sub rdi, 64
-	jmp .mod
-
-.ret:
 	mov rax, rdi
+	and rax, 63
 	ret
 
