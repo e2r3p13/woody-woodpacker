@@ -96,7 +96,7 @@ static void chacha_block(uint32_t working_state[16], t_key key, uint32_t counter
 void chacha20_run(uint8_t *data, size_t len, t_key key)
 {
 	uint32_t    key_stream[16];
-	uint32_t	counter;
+	uint32_t	counter = 0;
 
 	for (size_t i = 0; i < len; i++)
 	{
