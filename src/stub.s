@@ -206,12 +206,12 @@ chacha20_block:
 	lea r11, [rel state]
 	xor rcx, rcx
 	.addstart:
-	cmp rcx, 64
+	cmp rcx, 16
 	je .fini
-	mov r12b, [r10]
-	add [r11], r12b
-	inc r10
-	inc r11
+	mov r12d, [r10]
+	add [r11], r12d
+	add r10, 4
+	add r11, 4
 	inc rcx
 	jmp .addstart
 
