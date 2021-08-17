@@ -45,4 +45,4 @@ Several methods can be used to inject the stub. Here's the one that I choosed:
 
 ## Note
 
-The given executable must be compiled with `clang -m64` in order to work
+The given executable must be compiled with `clang -m64` in order to work.
