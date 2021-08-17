@@ -45,7 +45,10 @@ bool elf64_is_already_packed(t_elf *elf)
 	for (size_t i = 0; i < elf->header.e_shnum; i++)
 	{
 		if (strcmp(elf64_get_section_name(elf, i), ".woody") == 0)
+		{
+			printf("woody_woodpacker: binary already packed\n");
 			return (1);
+		}
 	}
 	return (0);
 }
