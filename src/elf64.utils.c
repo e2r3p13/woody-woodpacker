@@ -40,7 +40,27 @@ int elf64_encrypt_section(t_elf *elf, const char *sname, t_key key, uint32_t *tx
 	return (1);
 }
 
-bool elf64_is_already_packed(t_elf *elf)
+static bool elf64_is_clang_compiled(t_elf *elf)
+{
+	uint8_t		*secaddr;
+	size_t		secsize;
+	
+	for (size_t i = 0; i < elf->header.e_shnum; i++)
+	{
+		if (strcmp(elf64_get_section_name(elf, i), ".comment") == 0)
+		{
+			secaddr = elf->scontent[i];
+			secsize = elf->sheaders[i].sh_size;
+			if (memmem((const void *)secaddr, secsize, "clang", 5) != 0)
+				return (true);
+			break ;
+		}
+	}
+	printf("woody_woodpacker: given binaries must be compiled with 'clang -m64'\n");
+	return (false);
+}
+
+static bool elf64_is_already_packed(t_elf *elf)
 {
 	for (size_t i = 0; i < elf->header.e_shnum; i++)
 	{
@@ -51,6 +71,11 @@ bool elf64_is_already_packed(t_elf *elf)
 		}
 	}
 	return (0);
+}
+
+bool elf64_is_packable(t_elf *elf)
+{
+	return (elf64_is_clang_compiled(elf) && !elf64_is_already_packed(elf));
 }
 
 long get_file_size(int fd)

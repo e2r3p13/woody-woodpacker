@@ -65,7 +65,7 @@ int main(int ac, char **av)
 	}
 	if ((elf = elf64_read(av[1])) == NULL)
 		return (1);
-	if (elf64_is_already_packed(elf) || chacha20_keygen(key) < 0 || elf64_encrypt_section(elf, ".text", key, &txtsecsz) < 0)
+	if (!elf64_is_packable(elf) || chacha20_keygen(key) < 0 || elf64_encrypt_section(elf, ".text", key, &txtsecsz) < 0)
 	{
 		elf64_free(elf);
 		return (1);

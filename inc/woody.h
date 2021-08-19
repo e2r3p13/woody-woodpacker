@@ -23,14 +23,14 @@ typedef struct
 */
 
 t_elf   *elf64_read(char *fpath);
-bool	elf64_is_already_packed(t_elf *elf);
+bool	elf64_is_packable(t_elf *elf);
 int		elf64_encrypt_section(t_elf *elf, const char *sname, t_key key, uint32_t *txtsecsz);
 int		elf64_inject(t_elf *elf, uint8_t *loader, size_t lsize);
 int		elf64_write(t_elf *elf, const char *path);
 void    elf64_free(t_elf *elf);
 
 /*
- *	Side functions, some of them are needed, some are not.
+ *	Side functions, some of them are needed, some are not.:
  *	Wanna play russian roulette? Delete one of them and see if it still
  *	compiles.
 */
@@ -38,5 +38,11 @@ void    elf64_free(t_elf *elf);
 void	elf64_print(t_elf *elf, int flags);
 char	*elf64_get_section_name(t_elf *elf, size_t index);
 long	get_file_size(int fd);
+
+/*
+ *	Utils functions (mainly copies of standard functions.
+*/
+
+size_t memmem(const void *haystack, size_t hlen, const char *needle, size_t nlen);
 
 #endif

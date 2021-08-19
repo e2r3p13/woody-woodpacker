@@ -29,6 +29,7 @@ SRCS	=	chacha20.c				\
 			elf64.utils.c			\
 			elf64.write.c			\
 			main.c					\
+			utils.c					\
 			$(STUB).c				\
 			elf64.print.c			\
 
