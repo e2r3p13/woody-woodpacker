@@ -32,7 +32,7 @@ SRCS	=	chacha20.c				\
 			$(STUB).c				\
 			elf64.print.c			\
 
-CC		=	gcc
+CC		=	clang -m64
 CFLAGS	=	-Wall -Wextra -Werror
 DEBUG	=	#-g3 -fsanitize=address
 
