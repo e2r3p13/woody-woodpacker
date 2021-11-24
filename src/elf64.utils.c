@@ -11,7 +11,6 @@
 /* ************************************************************************** */
 
 #include <elf.h>
-#include <string.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <woody.h>
@@ -29,7 +28,7 @@ int elf64_encrypt_section(t_elf *elf, const char *sname, t_key key, uint32_t *tx
 {
 	for (size_t i = 0; i < elf->header.e_shnum; i++)
 	{
-		if (strcmp(sname, elf64_get_section_name(elf, i)) == 0)
+		if (ft_strcmp(sname, elf64_get_section_name(elf, i)) == 0)
 		{
 			*txtsecsz = elf->sheaders[i].sh_size;
 			chacha20_run(elf->scontent[i], *txtsecsz, key);
@@ -47,7 +46,7 @@ static bool elf64_is_clang_compiled(t_elf *elf)
 	
 	for (size_t i = 0; i < elf->header.e_shnum; i++)
 	{
-		if (strcmp(elf64_get_section_name(elf, i), ".comment") == 0)
+		if (ft_strcmp(elf64_get_section_name(elf, i), ".comment") == 0)
 		{
 			secaddr = elf->scontent[i];
 			secsize = elf->sheaders[i].sh_size;
@@ -56,7 +55,7 @@ static bool elf64_is_clang_compiled(t_elf *elf)
 			break ;
 		}
 	}
-	printf("woody_woodpacker: given binaries must be compiled with 'clang -m64'\n");
+	printf("woody_woodpacker: given binary must have been compiled with 'clang -m64'\n");
 	return (false);
 }
 
@@ -64,7 +63,7 @@ static bool elf64_is_already_packed(t_elf *elf)
 {
 	for (size_t i = 0; i < elf->header.e_shnum; i++)
 	{
-		if (strcmp(elf64_get_section_name(elf, i), ".woody") == 0)
+		if (ft_strcmp(elf64_get_section_name(elf, i), ".woody") == 0)
 		{
 			printf("woody_woodpacker: binary already packed\n");
 			return (1);

@@ -13,7 +13,6 @@
 #include <elf.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <string.h>
 #include <fcntl.h>
 #include <woody.h>
 #include <stdio.h>
@@ -60,9 +59,9 @@ static int read_header(t_elf *elf, char *fdata)
 	if (fsize < minsize)
 		printf("Error: Invalid ELF file\n");
 
-    memcpy(&elf->header, fdata, hsize);
+    ft_memcpy(&elf->header, fdata, hsize);
 
-    if (strncmp((char *)elf->header.e_ident, ELFMAG, SELFMAG) != 0)
+    if (ft_strncmp((char *)elf->header.e_ident, ELFMAG, SELFMAG) != 0)
 	{
 		printf("Error: Invalid ELF file\n");
 		return (-1);
@@ -95,7 +94,7 @@ static int read_pheaders(t_elf *elf, char *fdata)
 		perror("Error:");
 		return (-1);
 	}
-    memcpy(elf->pheaders, fdata + elf->header.e_phoff, phsize);
+    ft_memcpy(elf->pheaders, fdata + elf->header.e_phoff, phsize);
 
     return (0);
 }
@@ -113,7 +112,7 @@ static int read_sheaders(t_elf *elf, char *fdata)
 		perror("Error:");
 		return (-1);
 	}
-    memcpy(elf->sheaders, fdata + elf->header.e_shoff, shsize);
+    ft_memcpy(elf->sheaders, fdata + elf->header.e_shoff, shsize);
 
     return (0);
 }
@@ -142,7 +141,7 @@ static int read_scontent(t_elf *elf, char *fdata)
 			perror("Error:");
 			return (-1);
 		}
-        memcpy(elf->scontent[i], fdata + shdr->sh_offset, shdr->sh_size);
+        ft_memcpy(elf->scontent[i], fdata + shdr->sh_offset, shdr->sh_size);
     }
     return (0);
 }
@@ -187,7 +186,7 @@ t_elf *elf64_read(char *fpath)
 		perror("Error:");
 		return (NULL);
 	}
-    memset(elf, 0, sizeof(t_elf));
+    ft_memset(elf, 0, sizeof(t_elf));
 
     if (read_header(elf, fdata) < 0 ||
 		read_pheaders(elf, fdata) < 0 ||

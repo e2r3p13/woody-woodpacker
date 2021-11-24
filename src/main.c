@@ -13,7 +13,6 @@
 #include <elf.h>
 #include <stdio.h>
 #include <woody.h>
-#include <string.h>
 #include <stdlib.h>
 #include <chacha20.h>
 
@@ -44,11 +43,11 @@ static void prepare_stub(uint32_t oep, uint32_t txtsecsz, t_key key)
 		exit(1);
 	}
 
-	memcpy(stub + offsets[0], &oep, sizeof(uint32_t));
-	memcpy(stub + offsets[1], &txtsecsz, sizeof(uint32_t));
-	memcpy(stub + offsets[2], &basepageaddr, sizeof(uint32_t));
-	memcpy(stub + offsets[3], &pageoff, sizeof(uint32_t));
-	memcpy(stub + offsets[4], key, 8 * sizeof(uint32_t));
+	ft_memcpy(stub + offsets[0], &oep, sizeof(uint32_t));
+	ft_memcpy(stub + offsets[1], &txtsecsz, sizeof(uint32_t));
+	ft_memcpy(stub + offsets[2], &basepageaddr, sizeof(uint32_t));
+	ft_memcpy(stub + offsets[3], &pageoff, sizeof(uint32_t));
+	ft_memcpy(stub + offsets[4], key, 8 * sizeof(uint32_t));
 }
 
 int main(int ac, char **av)
