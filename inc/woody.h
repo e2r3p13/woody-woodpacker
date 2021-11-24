@@ -44,9 +44,9 @@ long	get_file_size(int fd);
 */
 
 size_t	memmem(const void *haystack, size_t hlen, const char *needle, size_t nlen);
-void	ft_memcpy(void *dst, const void *src, size_t n);
+void	*ft_memcpy(void *dst, const void *src, size_t n);
 int		ft_strcmp(const char *s1, const char *s2);
 int		ft_strncmp(const char *s1, const char *s2, size_t n);
-void	ft_memset(void *dst, int c, size_t n);
+void	*ft_memset(void *dst, int c, size_t n);
 
 #endif

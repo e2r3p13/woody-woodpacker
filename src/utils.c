@@ -12,7 +12,7 @@ size_t memmem(const void *haystack, size_t hlen, const char *needle, size_t nlen
 {
 	int			match;
 	const char	*hstring;
-	
+
 	hstring = (const char *)haystack;
 	for (size_t i = 0; i < hlen; i++)
 	{
@@ -36,9 +36,18 @@ size_t memmem(const void *haystack, size_t hlen, const char *needle, size_t nlen
 /*
  * Copy @n first bytes of @src in @dst.
 */
-void ft_memcpy(void *dst, const void *src, size_t n)
+void *ft_memcpy(void *dst, const void *src, size_t n)
 {
+	unsigned char		*d;
+	const unsigned char	*s;
 
+	if (!dst && !src)
+		return (NULL);
+	d = (unsigned char *)dst;
+	s = (const unsigned char *)src;
+	while (n--)
+		*d++ = *s++;
+	return (dst);
 }
 
 /*
@@ -47,7 +56,12 @@ void ft_memcpy(void *dst, const void *src, size_t n)
 */
 int ft_strcmp(const char *s1, const char *s2)
 {
+	unsigned long i;
 
+	i = 0;
+	while (s1[i] && s2[i] && s1[i] == s2[i])
+		i++;
+	return ((unsigned char)s1[i] - (unsigned char)s2[i]);
 }
 
 /*
@@ -56,13 +70,25 @@ int ft_strcmp(const char *s1, const char *s2)
 */
 int ft_strncmp(const char *s1, const char *s2, size_t n)
 {
+	unsigned long i;
 
+	i = 0;
+	while (s1[i] && s2[i] && i < n && s1[i] == s2[i])
+		i++;
+	return (i == n ? 0 : ((unsigned char)s1[i] - (unsigned char)s2[i]));
 }
 
 /*
  * Fills the first @n bytes of @dst with @c bytes.
 */
-void ft_memset(void *dst, int c, size_t n)
+void *ft_memset(void *dst, int c, size_t n)
 {
+	unsigned char	*tmp;
+	unsigned char	chr;
 
+	tmp = (unsigned char *)dst;
+	chr = (unsigned char)c;
+	while (n--)
+		*tmp++ = chr;
+	return (dst);
 }
