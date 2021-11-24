@@ -4,7 +4,7 @@
 
 A packer is a program that encrypts and compress an executable.
 At runtime, the encrypted executable will decrypt / decompress itself to be executed.
-It's often use to hide a malicious payload, in order to bypass antiviruses.
+It's often used to hide a malicious payload, in order to bypass antiviruses.
 
 This project is a simple packer for Elf64 executables. It's pretty detectable, but as I did it for educational purpose, it'll be okay for this time!
 
