@@ -5,3 +5,4 @@ woody
 obj
 *.o
 *.DS_Store
+stub.c
