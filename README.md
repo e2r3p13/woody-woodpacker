@@ -1,4 +1,4 @@
-# Woody-woodpacker - A simple Elf64 packer
+# Woody-woodpacker
 
 ## Overview
 
