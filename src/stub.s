@@ -59,18 +59,18 @@ stub:
 	mov rsi, r9		; len
 
 	call chacha20_run
-	
+
 .removerights:
 	mov rdi, r10	;
 	mov rsi, r11	;
-	mov rdx, 5		; PROT_EXEC | PROT_READ 
+	mov rdx, 5		; PROT_EXEC | PROT_READ
 	mov rax, 10		; sys_mprotec
 	syscall
 
 .print:
 	mov rdi, 1				; stdout
 	lea rsi, [rel woody]	;
-	mov rdx, 6				; len
+	mov rdx, 14				; len
 	mov rax, 1				; write
 	syscall					;
 
@@ -83,18 +83,18 @@ stub:
 ;##############################################################################
 
 .data:
-	
+
 	model dd	0x61707865, 0x3320646e, 0x79622d32, 0x6b206574, \
 				0x00000042, 0x00000000, 0x00000000, 0x00000000, \
 				0x00000000, 0x00000000, 0x00000000, 0x00000000, \
 				0x00000000, 0x00000000, 0x4a000000, 0x00000000
-	
+
 	state dd	0, 0, 0, 0, \
 				0, 0, 0, 0, \
 				0, 0, 0, 0, \
 				0, 0, 0, 0
-	
-	woody db 	"WOODY", 0xa
+
+	woody db 	"....WOODY....", 0xa
 
 ;##############################################################################
 
@@ -114,7 +114,7 @@ chacha20_run:
 	call mod64				; if r9 % 64 == 0
 	cmp rax, 0				;
 	jne .xor				;
-	
+
 	mov rdi, r10
 	call chacha20_block
 
@@ -154,7 +154,7 @@ chacha20_run:
 chacha20_block:
 
 .init:
-	pushx r9, r10, r11, r12, rdi, rsi, rdx, rcx, 
+	pushx r9, r10, r11, r12, rdi, rsi, rdx, rcx,
 
 .inc_model_counter:
 	lea r10, [rel model]
@@ -223,4 +223,3 @@ mod64:
 	mov rax, rdi
 	and rax, 63
 	ret
-
