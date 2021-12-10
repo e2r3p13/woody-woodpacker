@@ -43,6 +43,8 @@ Several methods can be used to inject the stub. Here's the one that I choosed:
 
 [Executable packer](https://www.youtube.com/watch?v=5RK7sYTOeNk)
 
-## Note
+## Todo
 
-The given executable must be compiled with `clang -m64` in order to work.
+- [ ] Replace chacha block macros with functions in the asm stub, to make the packed binary lighter.
+- [ ] Use offsets in the stub, in order to pack binaries compiled with ASLR.
+- [ ] Compress the binary, then uncompress it at runtime with the stub.
