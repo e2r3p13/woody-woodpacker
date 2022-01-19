@@ -154,7 +154,7 @@ chacha20_run:
 chacha20_block:
 
 .init:
-	pushx r9, r10, r11, r12, rdi, rsi, rdx, rcx,
+	pushx r9, r10, r11, r12, rdi, rsi, rdx, rcx
 
 .inc_model_counter:
 	lea r10, [rel model]
